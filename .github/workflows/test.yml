@@ -21,12 +21,14 @@ jobs:
           filters: |
             docker:
               - 'Dockerfile'
+              - 'IMAGE_NAME'
       
       - name: Determine Docker Tag
         id: get_image
         run: |
           OWNER=${{ github.repository_owner }}
-          IMAGE_PATH="ghcr.io/${OWNER,,}/1-xetex-compiler"
+          IMAGE_NAME=$(cat IMAGE_NAME)
+          IMAGE_PATH="ghcr.io/${OWNER,,}/${IMAGE_NAME}"
           PR_TAG="pr-${{ github.event.pull_request.number }}"
 
           if [ "${{ steps.filter.outputs.docker }}" == "true" ] || docker manifest inspect ${IMAGE_PATH}:${PR_TAG} > /dev/null 2>&1; then

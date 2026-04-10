@@ -21,11 +21,13 @@ jobs:
           filters: |
             docker:
               - 'Dockerfile'
+              - 'IMAGE_NAME'
 
       - name: Set full image name
         id: get_image
         run: |
-          echo "full_image=ghcr.io/${OWNER,,}/1-xetex-compiler:dev" >> $GITHUB_OUTPUT
+          IMAGE_NAME=$(cat IMAGE_NAME)
+          echo "full_image=ghcr.io/${OWNER,,}/${IMAGE_NAME}:dev" >> $GITHUB_OUTPUT
         env:
           OWNER: '${{ github.repository_owner }}'
 
