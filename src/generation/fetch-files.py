@@ -1,6 +1,9 @@
 import requests
 import re
 
+COMMIT = 4
+VARIANT = 213
+
 session = requests.Session()
 
 base_url = "https://se.ifmo.ru/courses/software-engineering-basics"
@@ -14,33 +17,30 @@ else:
 
 params = {
   "p_p_id": "selab2_WAR_seportlet",
-  "p_p_lifecycle": "1",
+  "p_p_lifecycle": "2",
   "p_p_state": "normal",
   "p_p_mode": "view",
-  "_selab2_WAR_seportlet_javax.portlet.action": "getBranches",
+  "p_p_cacheability": "cacheLevelPage",
   "p_auth": p_auth
 }
 
-cookies = {
-  "JSESSIONID": "VbL0xFtTmHKKA_xEevglLfv1O9xz8Cg3EcUbt6j8.lportal",
-  "COOKIE_SUPPORT": "true",
-  "GUEST_LANGUAGE_ID": "ru_RU"
-}
-
 payload = {
-  "variant": "2"
+  "variant": str(VARIANT),
+  "commit": str(COMMIT)
 }
 
 response = session.post(
-  base_url, 
-  params=params, 
-  cookies=cookies, 
-  data=payload
+  base_url,
+  params=params,
+  data=payload,
+  stream=True
 )
 
 if response.ok:
-  print(f"Success! Status Code: {response.status_code}")
-  print(response.text)
+  with open(f"{COMMIT}.zip", "wb") as f:
+    for chunk in response.iter_content(chunk_size=8192):
+      f.write(chunk)
+  print(f"Success! File saved as 'downloaded_file'. Status Code: {response.status_code}")
 else:
   print(f"Something went wrong!")
   print(f"Status Code: {response.status_code}")
