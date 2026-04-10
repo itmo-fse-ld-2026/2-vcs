@@ -8,5 +8,4 @@ clean:
 pdf:
 	cd "${filepath}"; \
 	xelatex "${filename}"; \
-	biber "${filename}"; \
 	xelatex "${filename}"
