@@ -1,15 +1,27 @@
 from lib.primitives import Commit, Branch, Link
-from typing import Dict, Optional
+from typing import Dict, Optional, Protocol
 
-class GraphClient:
+class GraphClient(Protocol):
+  branches: Dict[str, Branch]
+  def create_branch(self, name: str, user_id: int, source_branch_name: Optional[str] = None) -> Branch:
+    ...
+  def add_commit(self, branch_name: str, commit_id: int, message: str) -> None:
+    ...
+  def merge_branches(self, source_name: str, target_name: str) -> None:
+    ...
+
+class DefaultGraphClient:
   def __init__(self):
     self.commits: Dict[int, Commit] = {}
     self.branches: Dict[str, Branch] = {}
     self._next_branch_id = 1
 
-  def add_commit(self, branch_name: str, commit_id: int):
+  def add_commit(self, branch_name: str, commit_id: int, message: str):
+    if not message or not message.strip():
+      raise ValueError("Commit message cannot be empty.")
+
     if commit_id not in self.commits:
-      self.commits[commit_id] = Commit(id=commit_id)
+      self.commits[commit_id] = Commit(id=commit_id, message=message)
     
     if branch_name not in self.branches:
       raise ValueError(f"Branch {branch_name} does not exist.")

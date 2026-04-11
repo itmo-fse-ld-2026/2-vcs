@@ -4,6 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class Commit:
   id: int
+  message: str
 
 @dataclass
 class Link:

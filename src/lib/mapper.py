@@ -1,9 +1,14 @@
 import json
+from lib.asker import CLIAsker
 from lib.graph import GraphClient
+from typing import Optional
 
 class GraphMapper:
   @staticmethod
-  def map_json_to_graph(json_str: str, client: GraphClient):
+  def map_json_to_graph(json_str: str,
+                        client: GraphClient,
+                        asker: Optional[CLIAsker] = None,
+                        default_message: str = "Initial commit"):
     data = json.loads(json_str)
     
     sorted_branches = sorted(data.values(), key=lambda x: x["id"])
@@ -22,7 +27,11 @@ class GraphMapper:
       branch.id = br_data["id"]
 
       for c_id in br_data.get("commits", []):
-        client.add_commit(branch.name, c_id)
+        commit_id = int(c_id)
+        msg = default_message
+        if asker:
+          msg = asker.ask_commit_message(branch.name, commit_id)
+        client.add_commit(branch.name, commit_id, msg)
 
       if "merge" in br_data:
         client.merge_branches(
