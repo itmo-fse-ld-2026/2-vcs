@@ -1,4 +1,4 @@
-from lib.client import IFMOPortalClient
+from lib.ifmo import IFMOPortalClient
 from lib.graph import GraphClient
 from lib.mapper import GraphMapper
 
