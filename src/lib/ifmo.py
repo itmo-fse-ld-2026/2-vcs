@@ -1,5 +1,7 @@
 import requests
 import re
+import os
+import subprocess
 
 class IFMOPortalClient:
   def __init__(self, variant: int, base_url: str) -> None:
@@ -66,3 +68,37 @@ class IFMOPortalClient:
     if response.ok:
       return True, response.text, response.status_code
     return False, response.text[:500], response.status_code
+  
+  def get_commit_area(self, commit: int, base_path: str) -> str:
+    target_dir = os.path.join(base_path, str(commit))
+    if os.path.exists(target_dir):
+      return target_dir
+
+    success, file_path, _ = self.download_archive(commit)
+    if not success:
+      raise RuntimeError(f"Failed to download commit {commit}")
+
+    os.makedirs(target_dir, exist_ok=True)
+    result = subprocess.run(
+      ["unzip", "-q", file_path, "-d", target_dir],
+      capture_output=True,
+      text=True
+    )
+
+    if result.returncode != 0:
+      if not os.path.exists(target_dir) or not os.listdir(target_dir):
+        raise RuntimeError(f"Unzip failed: {result.stderr}")
+    
+    os.remove(file_path)
+    return target_dir
+
+  def get_diff(self, old_dir: str, new_dir: str) -> str:
+    result = subprocess.run(
+      ["diff", "-r", "-N", "--color=always", "--binary", old_dir, new_dir],
+      capture_output=True,
+      text=True,
+      errors="replace"
+    )
+    if result.returncode > 1:
+      raise RuntimeError(f"Diff command failed: {result.stderr}")
+    return result.stdout

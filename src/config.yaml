@@ -1,3 +1,4 @@
 variant: 5
 base_url: "https://se.ifmo.ru/courses/software-engineering-basics"
 default_commit_message: "Done via automated scripts"
+work_dir: "./diff_cache"

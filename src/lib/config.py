@@ -6,7 +6,8 @@ def load(file_path: str = "config.yaml") -> Dict[str, Any]:
   defaults = {
     "variant": "0",
     "base_url": "https://se.ifmo.ru/courses/software-engineering-basics",
-    "default_commit_message": "Automated commit"
+    "default_commit_message": "Automated commit",
+    "work_dir": "diff_cache",
   }
   
   if not os.path.exists(file_path):

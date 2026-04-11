@@ -14,13 +14,7 @@ if __name__ == "__main__":
 
   success, result, status = portal_client.get_branches()
   if success:
-    mapper.map_json_to_graph(result, graph_client, asker)
+    mapper.map_json_to_graph(result, graph_client, cfg['work_dir'], asker, portal_client)
     print(f"Graph loaded. Branches: {list(graph_client.branches.keys())}")
-  else:
-    print(f"Error: {status} - {result}")
-
-  success, result, status = portal_client.download_archive(commit=4)
-  if success:
-    print(f"File saved: {result}")
   else:
     print(f"Error: {status} - {result}")
