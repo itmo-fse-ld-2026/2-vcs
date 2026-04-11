@@ -1,16 +1,21 @@
 from lib.client import IFMOPortalClient
+from lib.graph import GraphClient
+from lib.mapper import GraphMapper
 
 if __name__ == "__main__":
-  client = IFMOPortalClient()
+  portal_client = IFMOPortalClient()
+  graph_client = GraphClient()
+  mapper = GraphMapper()
 
-  success, result, status = client.get_branches(variant=2)
+  success, result, status = portal_client.get_branches(variant=2)
   if success:
-    print(f"Success! Status Code: {status}\n{result}")
+    mapper.map_json_to_graph(result, graph_client)
+    print(f"Graph loaded. Branches: {list(graph_client.branches.keys())}")
   else:
-    print(f"Something went wrong!\nStatus Code: {status}\nError Response: {result}")
+    print(f"Error: {status} - {result}")
 
-  success, result, status = client.download_archive(variant=213, commit=4)
+  success, result, status = portal_client.download_archive(variant=213, commit=4)
   if success:
-    print(f"Success! File saved as '{result}'. Status Code: {status}")
+    print(f"File saved: {result}")
   else:
-    print(f"Something went wrong!\nStatus Code: {status}\nError Response: {result}")
+    print(f"Error: {status} - {result}")
