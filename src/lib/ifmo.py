@@ -2,10 +2,11 @@ import requests
 import re
 
 class IFMOPortalClient:
-  def __init__(self, base_url: str = "https://se.ifmo.ru/courses/software-engineering-basics") -> None:
+  def __init__(self, variant: int, base_url: str) -> None:
     self._base_url = base_url
     self._session = requests.Session()
     self._p_auth = self._get_auth_token()
+    self._variant = variant
 
   def _get_auth_token(self) -> str:
     response = self._session.get(self._base_url)
@@ -33,13 +34,13 @@ class IFMOPortalClient:
       stream=stream
     )
 
-  def download_archive(self, variant: int, commit: int):
+  def download_archive(self, commit: int):
     params = {
       "p_p_lifecycle": "2",
       "p_p_cacheability": "cacheLevelPage"
     }
     payload = {
-      "variant": str(variant),
+      "variant": str(self._variant),
       "commit": str(commit)
     }
     response = self._post(params, payload, stream=True)
@@ -52,13 +53,13 @@ class IFMOPortalClient:
       return True, filename, response.status_code
     return False, response.text[:500], response.status_code
 
-  def get_branches(self, variant: int):
+  def get_branches(self):
     params = {
       "p_p_lifecycle": "1",
       "_selab2_WAR_seportlet_javax.portlet.action": "getBranches"
     }
     payload = {
-      "variant": str(variant)
+      "variant": str(self._variant)
     }
     response = self._post(params, payload)
     
