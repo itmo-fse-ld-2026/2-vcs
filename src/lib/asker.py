@@ -2,14 +2,14 @@ from typing import Protocol
 import sys, os
 
 class CLIAsker(Protocol):
-  def ask_commit_message(self, branch_name: str, commit_id: int, diff: str) -> str:
+  def ask_commit_message(self, commit_id: int, diff: str) -> str:
     ...
 
 class InteractiveAsker:
   def _clear_terminal(self):
     os.system('clear')
 
-  def ask_commit_message(self, branch_name: str, commit_id: int, diff: str) -> str:
+  def ask_commit_message(self, commit_id: int, diff: str) -> str:
     self._clear_terminal()
     if diff:
       print(f"--- Diff for commit {commit_id} ---")
@@ -18,7 +18,7 @@ class InteractiveAsker:
     
     while True:
       try:
-        msg = input(f"Enter commit message for {branch_name} (ID: {commit_id}): ").strip()
+        msg = input(f"Enter commit message (r{commit_id}): ").strip()
         if not msg:
           print("Error: Commit message cannot be empty.")
           continue

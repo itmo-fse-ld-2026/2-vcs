@@ -69,6 +69,11 @@ class IFMOPortalClient:
       return True, response.text, response.status_code
     return False, response.text[:500], response.status_code
   
+  def clear_commit_area(self, base_path: str):
+    if os.path.exists(base_path):
+      subprocess.run(["rm", "-r", base_path], check=True)
+      os.makedirs(base_path)
+  
   def get_commit_area(self, commit: int, base_path: str) -> str:
     target_dir = os.path.join(base_path, str(commit))
     if os.path.exists(target_dir):

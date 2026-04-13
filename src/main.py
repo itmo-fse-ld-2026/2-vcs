@@ -1,5 +1,4 @@
 from lib.ifmo import IFMOPortalClient
-from lib.graph import DefaultGraphClient
 from lib.mapper import GraphMapper
 from lib.asker import InteractiveAsker
 from lib.primitives import User
@@ -9,14 +8,13 @@ if __name__ == "__main__":
   cfg = config.load()
   
   portal_client = IFMOPortalClient(cfg['variant'], cfg['base_url'])
-  graph_client = DefaultGraphClient()
   asker = InteractiveAsker()
   users = [User(name="Petya", id=0, branch=-1), User(name="Vasya", id=1, branch=-1)]
-  mapper = GraphMapper(graph_client, users)
+  mapper = GraphMapper(portal_client, asker, users, cfg['work_dir'])
 
+  portal_client.clear_commit_area(cfg['work_dir'])
   success, result, status = portal_client.get_branches()
   if success:
     mapper.map_json_to_graph(result)
-    print(f"Graph loaded. Branches: {list(graph_client.branches.keys())}")
   else:
     print(f"Error: {status} - {result}")

@@ -1,8 +1,9 @@
 import json
 from typing import List, Set, Optional
 from dataclasses import dataclass
-from lib.graph import GraphClient
+from lib.ifmo import IFMOPortalClient
 from lib.primitives import User
+from lib.asker import CLIAsker
 
 @dataclass
 class CommitMeta:
@@ -14,9 +15,11 @@ class CommitMeta:
   from_branch_id: Optional[int]
 
 class GraphMapper:
-  def __init__(self, client: GraphClient, users: List[User]):
+  def __init__(self, client: IFMOPortalClient, asker: CLIAsker, users: List[User], work_dir: str):
     self.client = client
+    self.asker = asker
     self.users = users
+    self.work_dir = work_dir
   
   def _sort_commits(self, json_str: str) -> List[CommitMeta]:
     data = json.loads(json_str)
@@ -87,11 +90,11 @@ class GraphMapper:
       if c.branch_id != self.users[c.user_id].branch:
         self.users[c.user_id].branch = c.branch_id
         self.process_branch_switch(c.branch_id)
-      self.process_pre_commit()
+      commit_message = self.process_pre_commit(c.id)
       if c.is_merge:
-        self.process_merge_commit(c.id, c.from_branch_id, c.branch_id)
+        self.process_merge_commit(c.id, c.from_branch_id, c.branch_id, commit_message)
       else:
-        self.process_commit(c.id)
+        self.process_commit(c.id, commit_message)
   
   def process_user_switch(self, user_id: int):
     print(f"Switching to user: {user_id}")
@@ -105,11 +108,19 @@ class GraphMapper:
   def process_branch_switch(self, branch_id: int):
     print(f"Switching to branch: br-{branch_id}")
   
-  def process_pre_commit(self):
-    print("Pre commit actions.")
+  def process_pre_commit(self, commit_id: int) -> str:
+    new_path = self.client.get_commit_area(commit_id, self.work_dir)
+    if commit_id > 0:
+      old_path = self.client.get_commit_area(commit_id - 1, self.work_dir)
+    else:
+      old_path = new_path
+    diff_text = self.client.get_diff(old_path, new_path)
+    return self.asker.ask_commit_message(commit_id, diff_text)
   
-  def process_commit(self, commit_id: int):
+  def process_commit(self, commit_id: int, msg: str):
     print(f"Doing commit r{commit_id}.")
+    print(f"msg: {msg}")
   
-  def process_merge_commit(self, commit_id: int, from_branch_id: int, to_branch_id: int):
+  def process_merge_commit(self, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     print(f"Doing merge commit r{commit_id}: br-{from_branch_id} -> br-{to_branch_id}")
+    print(f"msg: {msg}")
