@@ -23,5 +23,6 @@ class Branch:
 @dataclass
 class User:
   name: str
+  email: str
   id: int
   branch: int
