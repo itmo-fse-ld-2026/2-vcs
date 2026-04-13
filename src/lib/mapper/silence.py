@@ -6,7 +6,8 @@ class SilentCommitMapper(GraphMapper):
     super().__init__(
       base_mapper.client, 
       base_mapper.asker, 
-      base_mapper.users, 
+      base_mapper.users,
+      base_mapper.vcs_protected,
       base_mapper.work_dir
     )
     self.base_mapper = base_mapper

@@ -8,7 +8,7 @@ from lib.mapper.default import GraphMapper
 
 class GitGraphMapper(GraphMapper):
   def __init__(self, client: IFMOPortalClient, asker: CLIAsker, users: List[User], work_dir: str):
-    super().__init__(client, asker, users, work_dir)
+    super().__init__(client, asker, users, ['.git'], work_dir)
     self._ensure_repo_exists()
 
   def _git(self, *args: str):

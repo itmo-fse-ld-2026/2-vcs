@@ -8,7 +8,7 @@ from lib.mapper.default import GraphMapper
 
 class SVNGraphMapper(GraphMapper):
   def __init__(self, client: IFMOPortalClient, asker: CLIAsker, users: List[User], work_dir: str):
-    super().__init__(client, asker, users, work_dir)
+    super().__init__(client, asker, users, ['.svn'], work_dir)
     self.repo_url = f"file://{os.path.abspath(work_dir)}/repo"
     self.checkout_dir = os.path.join(work_dir, "checkout")
     self._ensure_repo_exists()

@@ -17,10 +17,11 @@ class CommitMeta:
   from_branch_id: Optional[int]
 
 class GraphMapper:
-  def __init__(self, client: IFMOPortalClient, asker: CLIAsker, users: List[User], work_dir: str):
+  def __init__(self, client: IFMOPortalClient, asker: CLIAsker, users: List[User], vcs_protected: List[str], work_dir: str):
     self.client = client
     self.asker = asker
     self.users = users
+    self.vcs_protected = vcs_protected
     self.work_dir = work_dir
 
     self.client.clear_commit_area(work_dir)
@@ -97,7 +98,7 @@ class GraphMapper:
       self.process_pre_commit(c.id)
       commit_message = self.get_commit_message(c.id)
       if c.is_merge:
-        self.process_merge_commit(c.id, c.from_branch_id, c.branch_id, commit_message)
+        self.process_merge_commit(c.id, int(c.from_branch_id), c.branch_id, commit_message)
       else:
         self.process_commit(c.id, commit_message)
   
@@ -117,9 +118,14 @@ class GraphMapper:
     repo_path = os.path.join(self.work_dir, "repo")
   
     if os.path.exists(repo_path):
-      subprocess.run(["rm", "-r", repo_path])
-    
-    os.makedirs(repo_path, exist_ok=True)
+      for item in os.listdir(repo_path):
+        if item in self.vcs_protected:
+          continue
+        
+        item_path = os.path.join(repo_path, item)
+        subprocess.run(["rm", "-rf", item_path])
+    else:
+      os.makedirs(repo_path, exist_ok=True)
 
     success, file_path, _ = self.client.download_archive(commit_id)
     if not success:
