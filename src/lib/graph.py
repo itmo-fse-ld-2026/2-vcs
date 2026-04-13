@@ -1,5 +1,5 @@
 from lib.primitives import Commit, Branch, Link
-from typing import Dict, Optional, Protocol
+from typing import Dict, Optional, Protocol, List
 
 class GraphClient(Protocol):
   branches: Dict[str, Branch]
@@ -8,6 +8,8 @@ class GraphClient(Protocol):
   def add_commit(self, branch_name: str, commit_id: int, message: str) -> None:
     ...
   def merge_branches(self, source_name: str, target_name: str) -> None:
+    ...
+  def get_branch_history(self, branch_name: str) -> List[Commit]:
     ...
 
 class DefaultGraphClient:
@@ -34,7 +36,7 @@ class DefaultGraphClient:
       source = self.branches.get(source_branch_name)
       if not source or not source.commits:
         raise ValueError("Source branch must exist and have at least one commit.")
-      parent_link = Link(branch=source_branch_name, commit=source.commits[-1])
+      parent_link = Link(branch=source.id, commit=source.commits[-1])
 
     new_branch = Branch(
       name=name,
@@ -59,7 +61,14 @@ class DefaultGraphClient:
       raise ValueError("Source branch has no commits to merge.")
 
     last_commit_id = source.commits[-1]
-    target.merge = Link(branch=source_name, commit=last_commit_id)
+    target.merge = Link(branch=source.id, commit=last_commit_id)
     
     if last_commit_id not in target.commits:
       target.commits.append(last_commit_id)
+  
+  def get_branch_history(self, branch_name: str) -> List[Commit]:
+    if branch_name not in self.branches:
+      raise ValueError(f"Branch {branch_name} does not exist.")
+    
+    commit_ids = self.branches[branch_name].commits
+    return [self.commits[c_id] for c_id in commit_ids if c_id in self.commits]

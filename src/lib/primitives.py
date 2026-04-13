@@ -8,7 +8,7 @@ class Commit:
 
 @dataclass
 class Link:
-  branch: str
+  branch: int
   commit: int
 
 @dataclass
@@ -19,3 +19,9 @@ class Branch:
   commits: List[int]
   parent: Optional[Link] = None
   merge: Optional[Link] = None
+
+@dataclass
+class User:
+  name: str
+  id: int
+  branch: int

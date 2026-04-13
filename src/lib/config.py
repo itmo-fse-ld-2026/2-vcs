@@ -11,6 +11,7 @@ def load(file_path: str = "config.yaml") -> Dict[str, Any]:
   }
   
   if not os.path.exists(file_path):
+    print("Using default config.")
     return defaults
 
   try:
