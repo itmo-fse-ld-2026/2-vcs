@@ -9,6 +9,8 @@ def load(file_path: str = "config.yaml") -> Dict[str, Any]:
     "default_commit_message": "Automated commit",
     "git_dir": "./git_cache",
     "svn_dir": "./svn_cache",
+    "git_log": "./git.log",
+    "svn_log": "./svn.log",
   }
   
   if not os.path.exists(file_path):
