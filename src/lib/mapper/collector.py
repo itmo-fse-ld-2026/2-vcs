@@ -1,7 +1,7 @@
 from lib.mapper.default import GraphMapper
 from typing import Optional, Dict
 
-class SilentCommitMapper(GraphMapper):
+class CollectMessagesWrapper(GraphMapper):
   def __init__(self, base_mapper: GraphMapper, messages: Dict[int, str]):
     super().__init__(
       base_mapper.client, 
@@ -25,9 +25,8 @@ class SilentCommitMapper(GraphMapper):
     self.base_mapper.process_pre_commit(commit_id)
 
   def get_commit_message(self, commit_id: int) -> str:
-    msg = self.messages.get(commit_id)
-    if msg is None:
-      raise ValueError(f"Commit ID {commit_id} not found in mapping")
+    msg = self.base_mapper.get_commit_message(commit_id)
+    self.messages[commit_id] = msg
     return msg
 
   def process_commit(self, commit_id: int, msg: str):

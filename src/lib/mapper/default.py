@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 from typing import List, Set, Optional
 from dataclasses import dataclass
 from lib.ifmo import IFMOPortalClient
@@ -20,6 +22,8 @@ class GraphMapper:
     self.asker = asker
     self.users = users
     self.work_dir = work_dir
+
+    self.client.clear_commit_area(work_dir)
   
   def _sort_commits(self, json_str: str) -> List[CommitMeta]:
     data = json.loads(json_str)
@@ -90,7 +94,8 @@ class GraphMapper:
       if c.branch_id != self.users[c.user_id].branch:
         self.users[c.user_id].branch = c.branch_id
         self.process_branch_switch(c.branch_id)
-      commit_message = self.process_pre_commit(c.id)
+      self.process_pre_commit(c.id)
+      commit_message = self.get_commit_message(c.id)
       if c.is_merge:
         self.process_merge_commit(c.id, c.from_branch_id, c.branch_id, commit_message)
       else:
@@ -108,7 +113,31 @@ class GraphMapper:
   def process_branch_switch(self, branch_id: int):
     print(f"Switching to branch: br-{branch_id}")
   
-  def process_pre_commit(self, commit_id: int) -> str:
+  def process_pre_commit(self, commit_id: int):
+    repo_path = os.path.join(self.work_dir, "repo")
+  
+    if os.path.exists(repo_path):
+      subprocess.run(["rm", "-r", repo_path])
+    
+    os.makedirs(repo_path, exist_ok=True)
+
+    success, file_path, _ = self.client.download_archive(commit_id)
+    if not success:
+      raise RuntimeError(f"Failed to download commit {commit_id}")
+
+    result = subprocess.run(
+      ["unzip", "-q", file_path, "-d", repo_path],
+      capture_output=True,
+      text=True
+    )
+
+    if result.returncode != 0:
+      if not os.path.exists(repo_path) or not os.listdir(repo_path):
+        raise RuntimeError(f"Unzip failed: {result.stderr}")
+
+    os.remove(file_path)
+  
+  def get_commit_message(self, commit_id: int) -> str:
     new_path = self.client.get_commit_area(commit_id, self.work_dir)
     if commit_id > 0:
       old_path = self.client.get_commit_area(commit_id - 1, self.work_dir)

@@ -7,4 +7,5 @@
 temp/
 __pycache__/
 venv/
-diff_cache/
+git_cache/
+svn_cache/
