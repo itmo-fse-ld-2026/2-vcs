@@ -6,10 +6,14 @@ class Logger(Protocol):
 
   def log(self, message: str):
     ...
+  
+  def increment_revision(self):
+    ...
 
-class BasicLogger:
+class CommitLogger:
   def __init__(self, filename: str):
     self.filename = filename
+    self.revision = 0
   
   def clean(self):
     open(self.filename, "w").close()
@@ -17,3 +21,8 @@ class BasicLogger:
   def log(self, message: str):
     with open(self.filename, "a") as f:
       f.write(f"{message}\n")
+  
+  def increment_revision(self):
+    with open(self.filename, "a") as f:
+      f.write(f"\n# Revision {self.revision}\n")
+    self.revision += 1

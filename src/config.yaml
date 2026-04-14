@@ -1,7 +1,7 @@
 variant: 5
 base_url: "https://se.ifmo.ru/courses/software-engineering-basics"
 default_commit_message: "Done via automated scripts"
-git_dir: "./git_cache"
-svn_dir: "./svn_cache"
+git_dir: "./git_project"
+svn_dir: "./svn_project"
 git_log: "./git.log"
 svn_log: "./svn.log"

@@ -36,7 +36,7 @@ class IFMOPortalClient:
       stream=stream
     )
 
-  def download_archive(self, commit: int):
+  def download_archive(self, commit: int, download_dir: str):
     params = {
       "p_p_lifecycle": "2",
       "p_p_cacheability": "cacheLevelPage"
@@ -48,7 +48,7 @@ class IFMOPortalClient:
     response = self._post(params, payload, stream=True)
     
     if response.ok:
-      filename = f"{commit}.zip"
+      filename = os.path.join(download_dir, f"{commit}.zip")
       with open(filename, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
           f.write(chunk)
@@ -71,7 +71,7 @@ class IFMOPortalClient:
   
   def clear_commit_area(self, base_path: str):
     if os.path.exists(base_path):
-      subprocess.run(["rm", "-r", base_path], check=True)
+      subprocess.run(["rm", "-rf", base_path], check=True)
       os.makedirs(base_path)
   
   def get_commit_area(self, commit: int, base_path: str) -> str:
@@ -79,7 +79,7 @@ class IFMOPortalClient:
     if os.path.exists(target_dir):
       return target_dir
 
-    success, file_path, _ = self.download_archive(commit)
+    success, file_path, _ = self.download_archive(commit, base_path)
     if not success:
       raise RuntimeError(f"Failed to download commit {commit}")
 
