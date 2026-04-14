@@ -2,18 +2,18 @@ from typing import Protocol
 import sys, os
 
 class CLIAsker(Protocol):
-  def ask_commit_message(self, commit_id: int, diff: str) -> str:
+  def ask_commit_message(self, commit_id: int, diff_text: str) -> str:
     ...
 
 class InteractiveAsker:
   def _clear_terminal(self):
     os.system('clear')
 
-  def ask_commit_message(self, commit_id: int, diff: str) -> str:
+  def ask_commit_message(self, commit_id: int, diff_text: str) -> str:
     self._clear_terminal()
-    if diff:
+    if diff_text:
       print(f"--- Diff for commit {commit_id} ---")
-      print(diff)
+      print(diff_text)
       print("-" * 30 + "\n")
     
     while True:

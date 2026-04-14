@@ -2,7 +2,7 @@ import os
 from typing import List, Optional
 from lib.ifmo import IFMOPortalClient
 from lib.primitives import User
-from lib.asker import CLIAsker
+from lib.asker.default import CLIAsker
 from lib.mapper.default import GraphMapper
 from lib.logger import Logger
 

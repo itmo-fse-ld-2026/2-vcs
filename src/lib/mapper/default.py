@@ -5,7 +5,7 @@ from typing import List, Set, Optional
 from dataclasses import dataclass
 from lib.ifmo import IFMOPortalClient
 from lib.primitives import User
-from lib.asker import CLIAsker
+from lib.asker.default import CLIAsker
 
 @dataclass
 class CommitMeta:
