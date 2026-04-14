@@ -1,8 +1,8 @@
 from lib.ifmo import IFMOPortalClient
 from lib.mapper.git import GitGraphMapper
-from lib.mapper.svn import SVNGraphMapper
+# from lib.mapper.svn import SVNGraphMapper
 from lib.mapper.collector import CollectMessagesWrapper
-from lib.mapper.silence import SilentCommitMapper
+# from lib.mapper.silence import SilentCommitMapper
 from lib.asker import InteractiveAsker
 from lib.primitives import User
 from lib.logger import BasicLogger
@@ -21,11 +21,11 @@ if __name__ == "__main__":
 
   commit_messages: Dict[int, str] = dict()
   git_mapper = CollectMessagesWrapper(GitGraphMapper(portal_client, asker, users, git_logger, cfg['git_dir']), commit_messages)
-  svn_mapper = SilentCommitMapper(SVNGraphMapper(portal_client, asker, users, cfg['svn_dir']), commit_messages)
+  # svn_mapper = SilentCommitMapper(SVNGraphMapper(portal_client, asker, users, cfg['svn_dir']), commit_messages)
 
   success, result, status = portal_client.get_branches()
   if success:
     git_mapper.map_json_to_graph(result)
-    svn_mapper.map_json_to_graph(result)
+    # svn_mapper.map_json_to_graph(result)
   else:
     print(f"Error: {status} - {result}")

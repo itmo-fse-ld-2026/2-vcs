@@ -1,5 +1,6 @@
 certifi==2026.2.25
 charset-normalizer==3.4.7
+debugpy==1.8.20
 idna==3.11
 PyYAML==6.0.3
 requests==2.33.1

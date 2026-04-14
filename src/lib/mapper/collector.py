@@ -16,8 +16,8 @@ class CollectMessagesWrapper(GraphMapper):
   def process_user_switch(self, user_id: int):
     self.base_mapper.process_user_switch(user_id)
 
-  def process_branch_create(self, branch_id: int, from_branch_id: Optional[int]):
-    self.base_mapper.process_branch_create(branch_id, from_branch_id)
+  def process_branch_create(self, branch_id: int, from_branch_id: Optional[int]) -> int:
+    return self.base_mapper.process_branch_create(branch_id, from_branch_id)
 
   def process_branch_switch(self, branch_id: int):
     self.base_mapper.process_branch_switch(branch_id)
@@ -35,3 +35,6 @@ class CollectMessagesWrapper(GraphMapper):
 
   def process_merge_commit(self, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     self.base_mapper.process_merge_commit(commit_id, from_branch_id, to_branch_id, msg)
+  
+  def map_json_to_graph(self, json_str: str):
+    self.base_mapper.map_json_to_graph(json_str)

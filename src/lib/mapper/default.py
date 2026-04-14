@@ -17,14 +17,13 @@ class CommitMeta:
   from_branch_id: Optional[int]
 
 class GraphMapper:
-  def __init__(self, client: IFMOPortalClient, asker: CLIAsker, users: List[User], vcs_protected: List[str], work_dir: str):
+  def __init__(self, client: IFMOPortalClient, asker: CLIAsker, users: List[User], vcs_protected: List[str], work_dir: str, repo_subdir: str = "repo"):
     self.client = client
     self.asker = asker
     self.users = users
     self.vcs_protected = vcs_protected
     self.work_dir = work_dir
-
-    self.client.clear_commit_area(work_dir)
+    self.repo_dir = os.path.join(self.work_dir, repo_subdir)
   
   def _sort_commits(self, json_str: str) -> List[CommitMeta]:
     data = json.loads(json_str)
@@ -91,7 +90,7 @@ class GraphMapper:
         curr_user_idx = c.user_id
         self.process_user_switch(c.user_id)
       if c.is_first:
-        self.process_branch_create(c.branch_id, c.from_branch_id)
+        self.users[c.user_id].branch = self.process_branch_create(c.branch_id, c.from_branch_id)
       if c.branch_id != self.users[c.user_id].branch:
         self.users[c.user_id].branch = c.branch_id
         self.process_branch_switch(c.branch_id)
@@ -105,40 +104,39 @@ class GraphMapper:
   def process_user_switch(self, user_id: int):
     print(f"Switching to user: {user_id}")
   
-  def process_branch_create(self, branch_id: int, from_branch_id: Optional[int]):
+  def process_branch_create(self, branch_id: int, from_branch_id: Optional[int]) -> int:
     if from_branch_id is None:
       print(f"Creating branch: br-{branch_id}")
     else:
       print(f"Creating branch: br-{branch_id} from br-{from_branch_id}")
+    return branch_id
   
   def process_branch_switch(self, branch_id: int):
     print(f"Switching to branch: br-{branch_id}")
   
   def process_pre_commit(self, commit_id: int):
-    repo_path = os.path.join(self.work_dir, "repo")
-  
-    if os.path.exists(repo_path):
-      for item in os.listdir(repo_path):
+    if os.path.exists(self.repo_dir):
+      for item in os.listdir(self.repo_dir):
         if item in self.vcs_protected:
           continue
         
-        item_path = os.path.join(repo_path, item)
+        item_path = os.path.join(self.repo_dir, item)
         subprocess.run(["rm", "-rf", item_path])
     else:
-      os.makedirs(repo_path, exist_ok=True)
+      os.makedirs(self.repo_dir, exist_ok=True)
 
     success, file_path, _ = self.client.download_archive(commit_id)
     if not success:
       raise RuntimeError(f"Failed to download commit {commit_id}")
 
     result = subprocess.run(
-      ["unzip", "-q", file_path, "-d", repo_path],
+      ["unzip", "-q", file_path, "-d", self.repo_dir],
       capture_output=True,
       text=True
     )
 
     if result.returncode != 0:
-      if not os.path.exists(repo_path) or not os.listdir(repo_path):
+      if not os.path.exists(self.repo_dir) or not os.listdir(self.repo_dir):
         raise RuntimeError(f"Unzip failed: {result.stderr}")
 
     os.remove(file_path)

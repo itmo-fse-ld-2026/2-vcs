@@ -35,11 +35,12 @@ class SVNGraphMapper(GraphMapper):
   def process_user_switch(self, user_id: int):
     self.current_user = self.users[user_id]
 
-  def process_branch_create(self, branch_id: int, from_branch_id: Optional[int]):
+  def process_branch_create(self, branch_id: int, from_branch_id: Optional[int]) -> int:
     source = "trunk" if from_branch_id is None else f"branches/br-{from_branch_id}"
     target = f"branches/br-{branch_id}"
     self._svn("copy", f"{self.repo_url}/{source}", f"{self.repo_url}/{target}", "-m", f"Created {target}")
     self._svn("update")
+    return branch_id
 
   def process_branch_switch(self, branch_id: int):
     target_path = f"{self.repo_url}/branches/br-{branch_id}"
