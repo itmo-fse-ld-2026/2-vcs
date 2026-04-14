@@ -11,6 +11,7 @@ def load(file_path: str = "config.yaml") -> Dict[str, Any]:
     "svn_dir": "svn_project",
     "git_log": "git.log",
     "svn_log": "svn.log",
+    "vcs_plot": "plot.tex",
   }
   
   if not os.path.exists(file_path):

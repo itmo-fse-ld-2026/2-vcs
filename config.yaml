@@ -1,7 +1,8 @@
-variant: 5
+variant: 700777
 base_url: "https://se.ifmo.ru/courses/software-engineering-basics"
 output_dir: "./output"
 git_dir: "git_project"
 svn_dir: "svn_project"
 git_log: "git.log"
 svn_log: "svn.log"
+vcs_plot: "plot.tex"
