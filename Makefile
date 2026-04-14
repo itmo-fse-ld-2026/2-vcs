@@ -1,19 +1,18 @@
-filepath=report/
-filename=main
+report_dir=report/
+report_name=main
+
+config_name=config.yaml
 
 generate:
-	docker run --rm -it -v .:/project --user $(id -u):$(id -g) test python src/main.py
+	docker run --rm -it -v .:/project --user $$(id -u):$$(id -g) test python src/main.py
 clean:
 	# clean LaTeX artifacts
 	@for file_ext in "*.pdf" "*.aux" "*.log" "*.toc" "*.out" "*.bbl" "*.blg" "*.bcf" "*.run.xml"; do \
-		find $(filepath) -name "$${file_ext}" -delete; \
+		find $(report_dir) -name "$${file_ext}" -delete; \
 	done
 	# clean project artifacts
-	rm -rf $$(grep "git_dir:" config.yaml | cut -d '"' -f 2)
-	rm -rf $$(grep "svn_dir:" config.yaml | cut -d '"' -f 2)
-	rm -rf $$(grep "git_log:" config.yaml | cut -d '"' -f 2)
-	rm -rf $$(grep "svn_log:" config.yaml | cut -d '"' -f 2)
+	rm -rf $$(grep "output_dir:" ${config_name} | cut -d '"' -f 2)
 pdf:
-	cd "${filepath}"; \
-	xelatex "${filename}"; \
-	xelatex "${filename}"
+	cd "${report_dir}"; \
+	xelatex "${report_name}"; \
+	xelatex "${report_name}"
