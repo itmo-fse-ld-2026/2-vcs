@@ -3,14 +3,14 @@ import os
 from typing import Any, Dict
 
 def load(file_path: str = "config.yaml") -> Dict[str, Any]:
-  defaults = {
-    "variant": "0",
+  defaults: Dict[str, Any] = {
+    "variant": 0,
     "base_url": "https://se.ifmo.ru/courses/software-engineering-basics",
-    "default_commit_message": "Automated commit",
-    "git_dir": "./git_cache",
-    "svn_dir": "./svn_cache",
-    "git_log": "./git.log",
-    "svn_log": "./svn.log",
+    "output_dir": "./output",
+    "git_dir": "git_project",
+    "svn_dir": "svn_project",
+    "git_log": "git.log",
+    "svn_log": "svn.log",
   }
   
   if not os.path.exists(file_path):

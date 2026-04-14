@@ -8,6 +8,7 @@ from lib.primitives import User
 from lib.logger import CommitLogger
 from typing import Dict
 import lib.config as config
+import os
 
 if __name__ == "__main__":
   cfg = config.load()
@@ -20,11 +21,20 @@ if __name__ == "__main__":
   cumulative_asker = CumulativeAsker(asker, commit_messages)
   users = [User(name="Red", email="red@yandex.ru", id=0, branch=-1), User(name="Blue", email="blue@yandex.ru", id=1, branch=-1)]
 
-  git_logger = CommitLogger(cfg['git_log'])
-  svn_logger = CommitLogger(cfg['svn_log'])
+  out_dir: str = cfg['output_dir']
+  if os.path.exists(out_dir):
+    os.rmdir(out_dir)
+  os.makedirs(out_dir)
 
-  git_mapper = GitGraphMapper(portal_client, cumulative_asker, users, git_logger, cfg['git_dir'])
-  svn_mapper = SVNGraphMapper(portal_client, silent_asker, users, svn_logger, cfg['svn_dir'])
+  git_log: str = os.path.join(out_dir, cfg['git_log'])
+  svn_log: str = os.path.join(out_dir, cfg['svn_log'])
+  git_logger = CommitLogger(git_log)
+  svn_logger = CommitLogger(svn_log)
+
+  git_dir: str = os.path.join(out_dir, cfg['git_dir'])
+  svn_dir: str = os.path.join(out_dir, cfg['svn_dir'])
+  git_mapper = GitGraphMapper(portal_client, cumulative_asker, users, git_logger, git_dir)
+  svn_mapper = SVNGraphMapper(portal_client, silent_asker, users, svn_logger, svn_dir)
 
   success, result, status = portal_client.get_branches()
   if success:
