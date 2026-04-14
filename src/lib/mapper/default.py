@@ -1,7 +1,7 @@
 import json
 import os
 import subprocess
-from typing import List, Set, Optional
+from typing import List, Set, Optional, Dict
 from dataclasses import dataclass
 from lib.ifmo import IFMOPortalClient
 from lib.primitives import User
@@ -98,23 +98,28 @@ class GraphMapper:
   def map_json_to_graph(self, json_str: str):
     self.init_repository()
     commits = self._sort_commits(json_str)
+    branch_heads: Dict[int, int] = {}
     for c in commits:
       self.process_fetch(c.user_id)
       if c.is_first:
         self.users[c.user_id].branch = self.process_branch_create(c.user_id, c.branch_id, c.from_branch_id)
+        if c.from_branch_id is not None and c.from_branch_id in branch_heads:
+          branch_heads[c.branch_id] = branch_heads[c.from_branch_id]
       if c.branch_id != self.users[c.user_id].branch:
         self.users[c.user_id].branch = c.branch_id
         self.process_branch_switch(c.user_id, c.branch_id)
       self.process_pre_commit(c.id, c.user_id)
-      commit_message = self.get_commit_message(c.id)
+      prev_commit_id = branch_heads.get(c.branch_id)
+      commit_message = self.get_commit_message(c.id, prev_commit_id)
       if c.is_merge and c.from_branch_id is not None:
         self.process_merge_commit(c.user_id, c.id, c.from_branch_id, c.branch_id, commit_message)
       else:
         self.process_commit(c.user_id, c.id, commit_message)
+      branch_heads[c.branch_id] = c.id
       self.process_push(c.user_id, c.branch_id)
   
   def init_repository(self):
-    self._execute_cmd("mkdir", "-p", self.work_dir, self.remote_dir, self.local_dir, self.diff_dir)
+    self._execute_cmd("mkdir", "-p", self.work_dir, self.remote_dir, self.local_dir, os.path.join(self.diff_dir, "empty"))
     for user in self.users:
       user_path = os.path.join(self.local_dir, user.name)
       self._execute_cmd("mkdir", "-p", user_path)
@@ -156,14 +161,14 @@ class GraphMapper:
 
     self._execute_cmd("rm", "-f", file_path)
   
-  def get_commit_message(self, commit_id: int) -> str:
+  def get_commit_message(self, commit_id: int, prev_commit_id: Optional[int]) -> str:
     new_path = self.client.get_commit_area(commit_id, self.work_dir)
-    if commit_id > 0:
-      old_path = self.client.get_commit_area(commit_id - 1, self.work_dir)
+    if prev_commit_id is not None:
+      old_path = self.client.get_commit_area(prev_commit_id, self.work_dir)
     else:
-      old_path = new_path
+      old_path = os.path.join(self.diff_dir, "empty")
     diff_text = self.client.get_diff(old_path, new_path)
-    return self.asker.ask_commit_message(commit_id, diff_text)
+    return self.asker.ask_commit_message(commit_id, prev_commit_id, diff_text)
   
   def process_commit(self, user_id: int, commit_id: int, msg: str):
     print(f"Doing commit r{commit_id}.")
