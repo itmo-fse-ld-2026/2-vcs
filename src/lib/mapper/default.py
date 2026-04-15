@@ -35,7 +35,7 @@ class GraphMapper:
     self.local_dir = os.path.join(self.work_dir, local_subdir)
     self.diff_dir = os.path.join(self.work_dir, diff_subdir)
   
-  def _execute_cmd(self, *args: str):
+  def _execute_cmd(self, args: List[str]):
     return subprocess.run(args, capture_output=True, text=True)
   
   def _sort_commits(self, json_str: str) -> List[CommitMeta]:
@@ -119,10 +119,10 @@ class GraphMapper:
       self.process_push(c.user_id, c.branch_id)
   
   def init_repository(self):
-    self._execute_cmd("mkdir", "-p", self.work_dir, self.remote_dir, self.local_dir, os.path.join(self.diff_dir, "empty"))
+    self._execute_cmd(["mkdir", "-p", self.work_dir, self.remote_dir, self.local_dir, os.path.join(self.diff_dir, "empty")])
     for user in self.users:
       user_path = os.path.join(self.local_dir, user.name)
-      self._execute_cmd("mkdir", "-p", user_path)
+      self._execute_cmd(["mkdir", "-p", user_path])
   
   def process_fetch(self, user_id: int):
     pass
@@ -147,19 +147,19 @@ class GraphMapper:
         continue
       
       item_path = os.path.join(user_dir, item)
-      self._execute_cmd("rm", "-rf", item_path)
+      self._execute_cmd(["rm", "-rf", item_path])
 
     success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
     if not success:
       raise RuntimeError(f"Failed to download commit {commit_id}")
 
-    result = self._execute_cmd("unzip", "-q", file_path, "-d", user_dir)
+    result = self._execute_cmd(["unzip", "-q", file_path, "-d", user_dir])
 
     if result.returncode != 0:
       if not os.path.exists(self.local_dir) or not os.listdir(self.local_dir):
         raise RuntimeError(f"Unzip failed: {result.stderr}")
 
-    self._execute_cmd("rm", "-f", file_path)
+    self._execute_cmd(["rm", "-f", file_path])
   
   def get_commit_message(self, commit_id: int, prev_commit_id: Optional[int]) -> str:
     new_path = self.client.get_commit_area(commit_id, self.work_dir)

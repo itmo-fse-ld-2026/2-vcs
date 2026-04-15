@@ -1,9 +1,61 @@
-\section{Список команд}
+\section{Конфигурация репозиториев}
 
 \subsection{Git}
 
-\dots
+Чтобы упростить имитацию многопользовательской работы в \texttt{Git}, было принято решение структурировать проект следующим образом: 
+\begin{lstlisting}
+tree -dL 1 ./output/git_project
+# ./output/git_project
+# ├── diff_cache
+# ├── local
+# └── remote
+# 
+# 4 directories
+\end{lstlisting}
+
+Для эмуляции нескольких пользователей создаются отдельные директории в \texttt{local}, которые соответствуют пользовательским именам. Чтобы синхронизировать проекты, в директории \texttt{remote} хранится имитация удалённого репозитория, с которым синхронизируются все изменения. 
+
+Для создания удалённого репозитория использовались следующие команды:
+\begin{lstlisting}
+git -C /project/output/git_project/remote init --bare
+\end{lstlisting}
+
+Для создания и конфигурации локальных репозиториев использовались следующие команды:
+\begin{lstlisting}
+git -C ./output/git_project/local/Red init
+git -C ./output/git_project/local/Red config user.name Red
+git -C ./output/git_project/local/Red config user.email red@yandex.ru
+git -C ./output/git_project/local/Red remote add origin /project/output/git_project/remote
+git -C ./output/git_project/local/Blue init
+git -C ./output/git_project/local/Blue config user.name Blue
+git -C ./output/git_project/local/Blue config user.email blue@yandex.ru
+git -C ./output/git_project/local/Blue remote add origin /project/output/git_project/remote
+\end{lstlisting}
 
 \subsection{Subversion}
 
-\dots
+Чтобы упростить имитацию многопользовательской работы в \texttt{Subversion}, было принято решение структурировать проект следующим образом: 
+\begin{lstlisting}
+tree -dL 1 ./output/svn_project
+# ./output/svn_project
+# ├── diff_cache
+# ├── local
+# └── remote
+# 
+# 4 directories
+\end{lstlisting}
+
+Для эмуляции нескольких пользователей создаются отдельные директории в \texttt{local}, которые соответствуют пользовательским именам. Чтобы синхронизировать проекты, в директории \texttt{remote} хранится имитация удалённого репозитория, с которым синхронизируются все изменения. 
+
+Для создания удалённого репозитория использовались следующие команды:
+\begin{lstlisting}
+svnadmin create /project/output/svn_project/remote
+svn --username Red mkdir file:///project/output/svn_project/remote/trunk -m "create 'trunk' directory"
+svn --username Red mkdir file:///project/output/svn_project/remote/branches -m "create 'branches' directory"
+\end{lstlisting}
+
+Для создания и конфигурации локальных репозиториев использовались следующие команды:
+\begin{lstlisting}
+svn --username Red checkout file:///project/output/svn_project/remote/trunk ./output/svn_project/local/Red
+svn --username Blue checkout file:///project/output/svn_project/remote/trunk ./output/svn_project/local/Blue
+\end{lstlisting}

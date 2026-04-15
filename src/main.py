@@ -6,6 +6,7 @@ from lib.asker.silent import SilentAsker
 from lib.asker.cumulative import CumulativeAsker
 from lib.primitives import User
 from lib.logger import CommitLogger
+from lib.report import ReportFiller
 from lib.plot import DefaultPlotter
 from typing import Dict
 import lib.config as config
@@ -30,8 +31,8 @@ if __name__ == "__main__":
 
   git_log: str = os.path.join(out_dir, cfg['git_log'])
   svn_log: str = os.path.join(out_dir, cfg['svn_log'])
-  git_logger = CommitLogger(git_log)
-  svn_logger = CommitLogger(svn_log)
+  git_logger = CommitLogger(git_log, "git")
+  svn_logger = CommitLogger(svn_log, "svn")
 
   git_dir: str = os.path.join(out_dir, cfg['git_dir'])
   svn_dir: str = os.path.join(out_dir, cfg['svn_dir'])
@@ -43,13 +44,23 @@ if __name__ == "__main__":
     0.5, 0.5, 0.5, 0.5
   )
 
-  vcs_plot: str = os.path.join(out_dir, cfg['vcs_plot'])
+  reporter = ReportFiller({
+    "variant_num": str(cfg['variant'])
+  }, cfg['report_dir'])
+
+  report_dir: str = cfg['report_dir']
+  vcs_plot: str = os.path.join(report_dir, cfg['vcs_plot'])
   success, result, status = portal_client.get_branches()
   if success:
     vcs_plot_data = plotter.generate_script(result)
     with open(vcs_plot, 'w') as f:
       f.write(vcs_plot_data)
+
     git_mapper.map_json_to_graph(result)
     svn_mapper.map_json_to_graph(result)
+
+    reporter.parse_artifact(git_log)
+    reporter.parse_artifact(svn_log)
+    reporter.compile_patterns()
   else:
     print(f"Error: {status} - {result}")
