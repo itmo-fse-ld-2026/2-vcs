@@ -26,13 +26,16 @@ class SVNGraphMapper(GraphMapper):
     if output and result.stdout:
       for line in result.stdout.splitlines():
         self.logger.log(f"# {line}")
+    if output and result.stderr:
+      for line in result.stderr.splitlines():
+        self.logger.log(f"#! {line}")
     return result 
 
-  def _svn(self, user_id: int, *args: str):
-    result = self._execute_cmd(["svn", "--username", self.users[user_id].name, *args])
-    if result.returncode != 0:
-      raise RuntimeError(f"Subversion Error: {result.stderr}")
-    return result.stdout
+  def _svn(self, user_id: int, args: List[str], show_error: bool=True, output: bool=False) -> tuple[int, str]:
+    result = self._execute_cmd(["svn", "--username", self.users[user_id].name, *args], output)
+    if result.returncode != 0 and show_error:
+      raise RuntimeError(f"Subversion Error: {result.stderr} | stdout: {result.stdout}")
+    return (result.returncode, result.stdout)
 
   def init_repository(self):
     super().init_repository()
@@ -44,18 +47,19 @@ class SVNGraphMapper(GraphMapper):
     if result.returncode != 0:
       raise RuntimeError(f"Subversion Error: {result.stderr}")
     trunk_url = f"{self.remote_url}/trunk"
-    self._svn(self.users[0].id, "mkdir", trunk_url, "-m", f"\"create 'trunk' directory\"")
-    self._svn(self.users[0].id, "mkdir", f"{self.remote_url}/branches", "-m", f"\"create 'branches' directory\"")
+    self._svn(self.users[0].id, ["mkdir", trunk_url, "-m", f"\"create 'trunk' directory\""])
+    self._svn(self.users[0].id, ["mkdir", f"{self.remote_url}/branches", "-m", f"\"create 'branches' directory\""])
     self.logger.mark_section("local_configuration")
     for user in self.users:
       user_path = os.path.join(self.local_dir, user.name)
-      self._svn(user.id, "checkout", trunk_url, user_path)
+      self._svn(user.id, ["checkout", trunk_url, user_path])
   
   def process_fetch(self, user_id: int):
     self.logger.increment_revision()
     username = self.users[user_id].name
     user_path = os.path.join(self.local_dir, username)
-    self._svn(user_id, "update", user_path)
+    self.logger.log("#bring changes from repository")
+    self._svn(user_id, ["update", user_path])
   
   def process_push(self, user_id: int, branch_id: int):
     return super().process_push(user_id, branch_id)
@@ -63,26 +67,46 @@ class SVNGraphMapper(GraphMapper):
   def process_branch_create(self, user_id: int, branch_id: int, from_branch_id: Optional[int]) -> int:
     branch_name = f"{self.remote_url}/branches/br-{branch_id}"
     if from_branch_id is None:
-      self._svn(user_id, "copy", f"{self.remote_url}/trunk", branch_name, "-m", f"\"create a new branch br-{branch_id}\"")
+      self._svn(user_id, ["copy", f"{self.remote_url}/trunk", branch_name, "-m", f"\"create a new branch br-{branch_id}\""])
       return self.users[user_id].branch
     branch_source = f"{self.remote_url}/branches/br-{from_branch_id}"
-    self._svn(user_id, "copy", branch_source, branch_name, "-m", f"create a new branch br-{branch_id} from br-{from_branch_id}")
-    return branch_id
+    self._svn(user_id, ["copy", branch_source, branch_name, "-m", f"\"create a new branch br-{branch_id} from br-{from_branch_id}\""])
+    return self.users[user_id].branch
 
   def process_branch_switch(self, user_id: int, branch_id: int):
     target_path = f"{self.remote_url}/branches/br-{branch_id}"
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
-    self._svn(user_id, "switch", target_path, user_path)
+    self.logger.log("#change local branch")
+    self._svn(user_id, ["switch", target_path, user_path])
 
   def process_commit(self, user_id: int, commit_id: int, msg: str):
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
-    self._svn(user_id, "add", "--force", user_path)
-    self._svn(user_id, "commit", "-m", msg, user_path)
+    self.logger.log("#schedule addition of files if there are new ones")
+    self._svn(user_id, ["add", "--force", user_path])
+    self.logger.log("#save done changes on branch")
+    self._svn(user_id, ["commit", "-m", f"\"{msg}\"", user_path])
 
   def process_merge_commit(self, user_id: int, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     source_url = f"{self.remote_url}/branches/br-{from_branch_id}"
-    self._svn(user_id, "merge", source_url)
-    self._svn(user_id, "commit", "-m", msg, )
+    user_path = os.path.join(self.local_dir, self.users[user_id].name)
+    self.logger.log("#apply changes from different branch")
+    error, _ = self._svn(user_id, ["merge", "--non-interactive", "--accept", "postpone", source_url, user_path], output=True, show_error=False)
+    self.logger.log("#ensuring the current status")
+    _, status_output = self._svn(user_id, ["status", user_path], output=True)
+    has_conflict = any(line.startswith('C') or 'conflict' in line.lower() for line in status_output.splitlines())
+    if error != 0 or has_conflict:
+      self.logger.log("#having problems with merging, trying to solve them...")
+      self.process_pre_commit(commit_id, user_id)
+      self.logger.log("#mark conflicts as resolved")
+      self._svn(user_id, ["resolve", "--accept", "working", "-R", user_path])
+      self.logger.log("#schedule addition of files if there are new ones")
+      self._svn(user_id, ["add", "--force", user_path])
+    self.logger.log("#save done changes on branch")
+    self._svn(user_id, ["commit", "-m", f'"{msg}"', user_path])
+  
+  def process_pre_commit(self, commit_id: int, user_id: int):
+    self.logger.log("#apply desired changes")
+    return super().process_pre_commit(commit_id, user_id)
 
   def map_json_to_graph(self, json_str: str):
     self.logger.clean()

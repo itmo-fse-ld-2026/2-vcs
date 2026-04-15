@@ -9,3 +9,9 @@
 \begin{lstlisting}
 {{ data['revision_' ~ revision_num ~ '_svn'] }}
 \end{lstlisting}
+
+{% if has_conflicts %}
+\subsubsection{Разрешение конфликтов}
+
+\dots
+{% endif %}

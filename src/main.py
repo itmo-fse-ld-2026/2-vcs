@@ -16,13 +16,12 @@ import subprocess
 if __name__ == "__main__":
   cfg = config.load()
   
-  portal_client = IFMOPortalClient(cfg['variant'], cfg['base_url'])
+  portal_client = IFMOPortalClient(cfg['variant'], cfg['base_url'], os.path.join(cfg['output_dir'], ".cache"))
 
   commit_messages: Dict[int, str] = dict()
   asker = InteractiveAsker()
   silent_asker = SilentAsker(commit_messages)
   cumulative_asker = CumulativeAsker(asker, commit_messages)
-  users = [User(name="Red", email="red@yandex.ru", id=0, branch=-1), User(name="Blue", email="blue@yandex.ru", id=1, branch=-1)]
 
   out_dir: str = cfg['output_dir']
   if os.path.exists(out_dir):
@@ -36,8 +35,12 @@ if __name__ == "__main__":
 
   git_dir: str = os.path.join(out_dir, cfg['git_dir'])
   svn_dir: str = os.path.join(out_dir, cfg['svn_dir'])
-  git_mapper = GitGraphMapper(portal_client, cumulative_asker, users, git_logger, git_dir)
-  svn_mapper = SVNGraphMapper(portal_client, silent_asker, users, svn_logger, svn_dir)
+
+  git_users = [User(name="Red", email="red@yandex.ru", id=0, branch=-1), User(name="Blue", email="blue@yandex.ru", id=1, branch=-1)]
+  svn_users = [User(name="Red", email="red@yandex.ru", id=0, branch=-1), User(name="Blue", email="blue@yandex.ru", id=1, branch=-1)]
+
+  git_mapper = GitGraphMapper(portal_client, cumulative_asker, git_users, git_logger, git_dir)
+  svn_mapper = SVNGraphMapper(portal_client, silent_asker, svn_users, svn_logger, svn_dir)
 
   plotter = DefaultPlotter(
     {0: "red", 1: "blue"},

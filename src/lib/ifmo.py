@@ -4,11 +4,12 @@ import os
 import subprocess
 
 class IFMOPortalClient:
-  def __init__(self, variant: int, base_url: str) -> None:
+  def __init__(self, variant: int, base_url: str, cache_dir: str) -> None:
     self._base_url = base_url
     self._session = requests.Session()
     self._p_auth = self._get_auth_token()
     self._variant = variant
+    self._cache_dir = cache_dir
 
   def _get_auth_token(self) -> str:
     response = self._session.get(self._base_url)
@@ -48,6 +49,7 @@ class IFMOPortalClient:
     response = self._post(params, payload, stream=True)
     
     if response.ok:
+      os.makedirs(download_dir, exist_ok=True)
       filename = os.path.join(download_dir, f"{commit}.zip")
       with open(filename, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
@@ -74,12 +76,12 @@ class IFMOPortalClient:
       subprocess.run(["rm", "-rf", base_path], check=True)
       os.makedirs(base_path)
   
-  def get_commit_area(self, commit: int, base_path: str) -> str:
-    target_dir = os.path.join(base_path, str(commit))
+  def get_commit_area(self, commit: int) -> str:
+    target_dir = os.path.join(self._cache_dir, str(commit))
     if os.path.exists(target_dir):
       return target_dir
 
-    success, file_path, _ = self.download_archive(commit, base_path)
+    success, file_path, _ = self.download_archive(commit, self._cache_dir)
     if not success:
       raise RuntimeError(f"Failed to download commit {commit}")
 
