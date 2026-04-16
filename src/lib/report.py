@@ -75,9 +75,8 @@ class ReportFiller:
       render_data: Dict[str, object] = {
         'revision_num': str(rev_num),
         'data': self.context,
-        'has_conflicts':
-          f'revision_{rev_num}_conflict_git' in self.context.keys() or
-          f'revision_{rev_num}_conflict_svn' in self.context.keys()
+        'has_conflicts_git': f'revision_{rev_num}_conflict_git' in self.context.keys(),
+        'has_conflicts_svn': f'revision_{rev_num}_conflict_svn' in self.context.keys(),
       }
       summaries.append(revision_template.render(render_data))
     

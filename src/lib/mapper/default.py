@@ -36,7 +36,7 @@ class GraphMapper:
     self.diff_dir = os.path.join(self.work_dir, diff_subdir)
   
   def _execute_cmd(self, args: List[str]):
-    return subprocess.run(args, capture_output=True, text=True)
+    return subprocess.run(args, capture_output=True, text=False)
   
   def _sort_commits(self, json_str: str) -> List[CommitMeta]:
     data = json.loads(json_str)
@@ -152,7 +152,11 @@ class GraphMapper:
       raise RuntimeError(f"Failed to download commit {commit_id}")
 
     contents = os.path.join(file_path, ".")
-    self._execute_cmd(["cp", "-rf", contents, user_dir])
+    cmd = ["rsync", "-av", "--delete"]
+    for pattern in self.vcs_protected:
+        cmd.extend(["--exclude", pattern])
+    cmd.extend([contents, user_dir])
+    self._execute_cmd(cmd)
   
   def get_commit_message(self, commit_id: int, prev_commit_id: Optional[int]) -> str:
     new_path = os.path.join(self.diff_dir, str(commit_id))

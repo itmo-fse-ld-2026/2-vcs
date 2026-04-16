@@ -11,11 +11,11 @@ git -C ./output/git_project/local/Red fetch origin
 #rename current branch
 git -C ./output/git_project/local/Red branch -m br-0
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/0/. ./output/git_project/local/Red
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/0/. ./output/git_project/local/Red
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Red commit -m "r0"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r0"
 #send changes to the remote repository
 git -C ./output/git_project/local/Red push -u origin br-0
 \end{lstlisting}
@@ -28,7 +28,7 @@ svn --username Red copy file:///project/output/svn_project/remote/trunk file:///
 #change local branch
 svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/0/. ./output/svn_project/local/Red
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/0/. ./output/svn_project/local/Red
 #schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
 #save done changes on branch
@@ -43,11 +43,11 @@ svn --username Red commit -m "r0" ./output/svn_project/local/Red
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/1/. ./output/git_project/local/Red
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/1/. ./output/git_project/local/Red
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Red commit -m "r1"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r1"
 #send changes to the remote repository
 git -C ./output/git_project/local/Red push -u origin br-0
 \end{lstlisting}
@@ -57,7 +57,7 @@ git -C ./output/git_project/local/Red push -u origin br-0
 #bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/1/. ./output/svn_project/local/Red
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/1/. ./output/svn_project/local/Red
 #schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
 #save done changes on branch
@@ -78,11 +78,11 @@ git -C ./output/git_project/local/Blue branch br-1 br-0
 #change to the desired branch
 git -C ./output/git_project/local/Blue switch br-1
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/2/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/2/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r2"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r2"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -95,7 +95,7 @@ svn --username Blue copy file:///project/output/svn_project/remote/branches/br-0
 #change local branch
 svn --username Blue switch file:///project/output/svn_project/remote/branches/br-1 ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/2/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/2/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -110,11 +110,11 @@ svn --username Blue commit -m "r2" ./output/svn_project/local/Blue
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/3/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/3/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r3"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r3"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -124,7 +124,7 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/3/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/3/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -139,11 +139,11 @@ svn --username Blue commit -m "r3" ./output/svn_project/local/Blue
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/4/. ./output/git_project/local/Red
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/4/. ./output/git_project/local/Red
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Red commit -m "r4"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r4"
 #send changes to the remote repository
 git -C ./output/git_project/local/Red push -u origin br-0
 \end{lstlisting}
@@ -153,7 +153,7 @@ git -C ./output/git_project/local/Red push -u origin br-0
 #bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/4/. ./output/svn_project/local/Red
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/4/. ./output/svn_project/local/Red
 #schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
 #save done changes on branch
@@ -174,11 +174,11 @@ git -C ./output/git_project/local/Red branch br-2 br-0
 #change to the desired branch
 git -C ./output/git_project/local/Red switch br-2
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/5/. ./output/git_project/local/Red
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/5/. ./output/git_project/local/Red
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Red commit -m "r5"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r5"
 #send changes to the remote repository
 git -C ./output/git_project/local/Red push -u origin br-2
 \end{lstlisting}
@@ -191,7 +191,7 @@ svn --username Red copy file:///project/output/svn_project/remote/branches/br-0 
 #change local branch
 svn --username Red switch file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Red
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/5/. ./output/svn_project/local/Red
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/5/. ./output/svn_project/local/Red
 #schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
 #save done changes on branch
@@ -206,11 +206,11 @@ svn --username Red commit -m "r5" ./output/svn_project/local/Red
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/6/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/6/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r6"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r6"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -220,7 +220,7 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/6/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/6/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -235,11 +235,11 @@ svn --username Blue commit -m "r6" ./output/svn_project/local/Blue
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/7/. ./output/git_project/local/Red
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/7/. ./output/git_project/local/Red
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Red commit -m "r7"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r7"
 #send changes to the remote repository
 git -C ./output/git_project/local/Red push -u origin br-2
 \end{lstlisting}
@@ -249,7 +249,7 @@ git -C ./output/git_project/local/Red push -u origin br-2
 #bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/7/. ./output/svn_project/local/Red
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/7/. ./output/svn_project/local/Red
 #schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
 #save done changes on branch
@@ -273,11 +273,16 @@ git -C ./output/git_project/local/Blue merge br-2 --no-ff -m "merge commit"
 git -C ./output/git_project/local/Blue diff --name-only --diff-filter=U
 # Lab4.java
 #having problems with merging, trying to solve them...
-cp -rf ./output/git_project/diff_cache/8/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/8/. ./output/git_project/local/Blue
+# sending incremental file list
+# Lab4.java
+# 
+# sent 434 bytes  received 35 bytes  938.00 bytes/sec
+# total size is 3,375  speedup is 7.20
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "merge commit"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "merge commit"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -287,36 +292,38 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply changes from different branch
-svn --username Blue merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Blue
-# --- Merging r6 through r9 into 'output/svn_project/local/Blue':
-# C    output/svn_project/local/Blue/Lab4.java
-# --- Recording mergeinfo for merge of r6 through r9 into 'output/svn_project/local/Blue':
-#  U   output/svn_project/local/Blue
-# Summary of conflicts:
-#   Text conflicts: 1
-#! svn: E155015: One or more conflicts were produced while merging r5:9 into
-#! '/project/output/svn_project/local/Blue' --
-#! resolve all conflicts and rerun the merge to apply the remaining
-#! unmerged revisions
+svn --username Blue merge --non-interactive --accept postpone ./output/svn_project/local/Blue/branches/br-2 ./output/svn_project/local/Blue/branches/br-1
 #ensuring the current status
 svn --username Blue status ./output/svn_project/local/Blue
-#  M      output/svn_project/local/Blue
-# C       output/svn_project/local/Blue/Lab4.java
-# ?       output/svn_project/local/Blue/Lab4.java.merge-left.r5
-# ?       output/svn_project/local/Blue/Lab4.java.merge-right.r9
-# ?       output/svn_project/local/Blue/Lab4.java.working
-# Summary of conflicts:
-#   Text conflicts: 1
 #having problems with merging, trying to solve them...
-cp -rf ./output/svn_project/diff_cache/8/. ./output/svn_project/local/Blue
+rsync -av --exclude .svn ./output/svn_project/diff_cache/8/. ./output/svn_project/local/Blue
+# sending incremental file list
+# ./
+# C.java
+# E.java
+# Lab4.java
+# 
+# sent 3,600 bytes  received 76 bytes  7,352.00 bytes/sec
+# total size is 3,375  speedup is 0.92
+#! sending incremental file list
+#! ./
+#! C.java
+#! E.java
+#! Lab4.java
+#! 
+#! sent 3,600 bytes  received 76 bytes  7,352.00 bytes/sec
+#! total size is 3,375  speedup is 0.92
 #mark conflicts as resolved
 svn --username Blue resolve --accept working -R ./output/svn_project/local/Blue
+#sync current state of files for committing (if during merge we decided to remove files)
+svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
 svn --username Blue commit -m "merge commit" ./output/svn_project/local/Blue
 \end{lstlisting}
 
 
 \subsubsection{Разрешение конфликтов}
+
 
 В процессе создания коммита в \texttt{Git} возникли следующие конфликты:
 \begin{lstlisting}
@@ -331,35 +338,49 @@ Line 26: >>>>>>> br-2
 Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
 
 \begin{lstlisting}
---- ./output/git_project/local/Blue/Lab4.java	2026-04-16 14:33:37.800058684 +0000
-+++ ./output/git_project/diff_cache/8/Lab4.java	2026-04-16 14:36:40.000000000 +0000
-@@ -19,8 +19,5 @@
-+previous : 6
-+previous : 7
+# Only in ./output/git_project/local/Blue: .git
+# diff -r -u ./output/git_project/local/Blue/Lab4.java ./output/git_project/diff_cache/8/Lab4.java
+# --- ./output/git_project/local/Blue/Lab4.java	2026-04-16 18:01:27.324068107 +0000
+# +++ ./output/git_project/diff_cache/8/Lab4.java	2026-04-16 18:04:30.000000000 +0000
+# @@ -19,8 +19,5 @@
+#    b.t26(c);
+#    }
+#  }
+# -<<<<<<< HEAD
+# -previous : 3
+# -=======
+# -previous : 5
+# ->>>>>>> br-2
+# +previous : 6
+# +previous : 7
+#
 \end{lstlisting}
 
-В процессе создания ревизии в \texttt{Subversion} возникли аналогичные конфликты:
+
+
+В процессе создания ревизии в \texttt{Subversion} возникли следующие конфликты:
 
 \begin{lstlisting}
-#viewing conflicts of output/svn_project/local/Blue/Lab4.java
-Line 22: <<<<<<< .working
-Line 23: previous : 3
-Line 24: ||||||| .merge-left.r5
-Line 25: previous : 0
-Line 26: =======
-Line 27: previous : 1
-Line 28: >>>>>>> .merge-right.r9
+
 \end{lstlisting}
 
-Поступим схожим образом, сверившись с предоставленным снимком репозитория. Разрешим их следующим образом:
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
 
 \begin{lstlisting}
---- ./output/svn_project/local/Blue/Lab4.java	2026-04-16 14:33:43.944058736 +0000
-+++ ./output/svn_project/diff_cache/8/Lab4.java	2026-04-16 14:36:46.000000000 +0000
-@@ -19,10 +19,5 @@
-+previous : 6
-+previous : 7
+# Only in ./output/svn_project/local/Blue: .svn
+# diff -r -u ./output/svn_project/local/Blue/Lab4.java ./output/svn_project/diff_cache/8/Lab4.java
+# --- ./output/svn_project/local/Blue/Lab4.java	2026-04-16 18:04:38.000000000 +0000
+# +++ ./output/svn_project/diff_cache/8/Lab4.java	2026-04-16 18:04:40.000000000 +0000
+# @@ -19,4 +19,5 @@
+#    b.t26(c);
+#    }
+#  }
+# -previous : 3
+# +previous : 6
+# +previous : 7
+#
 \end{lstlisting}
+
 
 \subsection{Ревизия №9}
 
@@ -368,11 +389,11 @@ Line 28: >>>>>>> .merge-right.r9
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/9/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/9/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r9"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r9"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -382,7 +403,7 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/9/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/9/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -397,11 +418,11 @@ svn --username Blue commit -m "r9" ./output/svn_project/local/Blue
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/10/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/10/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r10"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r10"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -411,7 +432,7 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/10/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/10/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -426,11 +447,11 @@ svn --username Blue commit -m "r10" ./output/svn_project/local/Blue
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/11/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/11/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r11"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r11"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -440,7 +461,7 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/11/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/11/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -455,11 +476,11 @@ svn --username Blue commit -m "r11" ./output/svn_project/local/Blue
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/12/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/12/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r12"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r12"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -469,7 +490,7 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/12/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/12/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -484,11 +505,11 @@ svn --username Blue commit -m "r12" ./output/svn_project/local/Blue
 #receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
 #apply desired changes
-cp -rf ./output/git_project/diff_cache/13/. ./output/git_project/local/Blue
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/13/. ./output/git_project/local/Blue
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-#save scheduled changes in the revision
-git -C ./output/git_project/local/Blue commit -m "r13"
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r13"
 #send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
@@ -498,7 +519,7 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply desired changes
-cp -rf ./output/svn_project/diff_cache/13/. ./output/svn_project/local/Blue
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/13/. ./output/svn_project/local/Blue
 #schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
 #save done changes on branch
@@ -532,16 +553,59 @@ svn --username Red update ./output/svn_project/local/Red
 #change local branch
 svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
 #apply changes from different branch
-svn --username Red merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-1 ./output/svn_project/local/Red
-# --- Merging differences between repository URLs into 'output/svn_project/local/Red':
-# U    output/svn_project/local/Red/Lab4.java
-# --- Recording mergeinfo for merge between repository URLs into 'output/svn_project/local/Red':
-#  U   output/svn_project/local/Red
+svn --username Red merge --non-interactive --accept postpone ./output/svn_project/local/Red/branches/br-1 ./output/svn_project/local/Red/branches/br-0
 #ensuring the current status
 svn --username Red status ./output/svn_project/local/Red
-#  M      output/svn_project/local/Red
-# M       output/svn_project/local/Red/Lab4.java
+#having problems with merging, trying to solve them...
+rsync -av --exclude .svn ./output/svn_project/diff_cache/14/. ./output/svn_project/local/Red
+# sending incremental file list
+# C.java
+# E.java
+# Lab4.java
+# 
+# sent 3,597 bytes  received 73 bytes  7,340.00 bytes/sec
+# total size is 3,376  speedup is 0.92
+#! sending incremental file list
+#! C.java
+#! E.java
+#! Lab4.java
+#! 
+#! sent 3,597 bytes  received 73 bytes  7,340.00 bytes/sec
+#! total size is 3,376  speedup is 0.92
+#mark conflicts as resolved
+svn --username Red resolve --accept working -R ./output/svn_project/local/Red
+#sync current state of files for committing (if during merge we decided to remove files)
+svn --username Red add --force ./output/svn_project/local/Red
 #save done changes on branch
 svn --username Red commit -m "merge commit" ./output/svn_project/local/Red
+\end{lstlisting}
+
+
+\subsubsection{Разрешение конфликтов}
+
+
+
+
+В процессе создания ревизии в \texttt{Subversion} возникли следующие конфликты:
+
+\begin{lstlisting}
+
+\end{lstlisting}
+
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
+
+\begin{lstlisting}
+# Only in ./output/svn_project/local/Red: .svn
+# diff -r -u ./output/svn_project/local/Red/Lab4.java ./output/svn_project/diff_cache/14/Lab4.java
+# --- ./output/svn_project/local/Red/Lab4.java	2026-04-16 18:01:39.116068207 +0000
+# +++ ./output/svn_project/diff_cache/14/Lab4.java	2026-04-16 18:04:42.000000000 +0000
+# @@ -19,4 +19,5 @@
+#    b.t26(c);
+#    }
+#  }
+# -previous : 1
+# +previous : 4
+# +previous : 13
+#
 \end{lstlisting}
 

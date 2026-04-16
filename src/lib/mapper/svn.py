@@ -24,16 +24,17 @@ class SVNGraphMapper(GraphMapper):
     if log:
       self.logger.log(" ".join(args))
     result = super()._execute_cmd(args)
-    if output and result.stdout:
-      for line in result.stdout.splitlines():
+    if output:
+      decoded = result.stdout.decode('utf-8', errors='replace')
+      for line in decoded.splitlines():
         self.logger.log(f"# {line}")
-    if output and result.stderr:
-      for line in result.stderr.splitlines():
+      decoded = result.stdout.decode('utf-8', errors='replace')
+      for line in decoded.splitlines():
         self.logger.log(f"#! {line}")
     return result 
 
-  def _svn(self, user_id: int, args: List[str], show_error: bool=True, output: bool=False) -> tuple[int, str]:
-    result = self._execute_cmd(["svn", "--username", self.users[user_id].name, *args], output)
+  def _svn(self, user_id: int, args: List[str], show_error: bool=True, output: bool=False) -> tuple[int, bytes]:
+    result = self._execute_cmd(["svn", "--username", self.users[user_id].name, *args], output=output)
     if result.returncode != 0 and show_error:
       raise RuntimeError(f"Subversion Error: {result.stderr} | stdout: {result.stdout}")
     return (result.returncode, result.stdout)
@@ -88,25 +89,49 @@ class SVNGraphMapper(GraphMapper):
     self._svn(user_id, ["commit", "-m", f"\"{msg}\"", user_path])
 
   def process_merge_commit(self, user_id: int, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
-    source_url = f"{self.remote_url}/branches/br-{from_branch_id}"
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
+    source_branch = f"{user_path}/branches/br-{from_branch_id}"
+    dest_branch = f"{user_path}/branches/br-{to_branch_id}"
     self.logger.log("#apply changes from different branch")
-    error, _ = self._svn(user_id, ["merge", "--non-interactive", "--accept", "postpone", source_url, user_path], output=True, show_error=False)
+    error, _ = self._svn(user_id, ["merge", "--non-interactive", "--accept", "postpone", source_branch, dest_branch], output=True, show_error=False)
     self.logger.log("#ensuring the current status")
     _, status_output = self._svn(user_id, ["status", user_path], output=True)
-    has_conflict = any(line.startswith('C') or 'conflict' in line.lower() for line in status_output.splitlines())
+    has_conflict = any(line.decode('utf-8', errors='replace').startswith('C') for line in status_output.splitlines())
+    question_files = [line.decode('utf-8', errors='replace').split(None, 1)[1] for line in status_output.splitlines() if line.decode('utf-8', errors='replace').startswith('?')]
     if error != 0 or has_conflict:
-      self._log_merge_conflicts(user_id, status_output)
+      self._log_merge_conflicts(user_id, status_output.decode('utf-8', errors='replace'))
       self.logger.log("#having problems with merging, trying to solve them...")
       user_dir = os.path.join(self.local_dir, self.users[user_id].name)
       success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
       if not success:
         raise RuntimeError(f"Failed to download commit {commit_id}")
       self._log_resolved_conflicts(user_id, file_path)
+
+      for root, dirs, files in os.walk(user_path, topdown=True):
+        if '.svn' in dirs:
+          dirs.remove('.svn')
+        
+        for name in files + dirs:
+          full_local_path = os.path.join(root, name)
+          rel_path = os.path.relpath(full_local_path, user_path)
+          archive_item_path = os.path.join(file_path, rel_path)
+          
+          is_protected = any(pattern in rel_path for pattern in self.vcs_protected)
+          is_protected |= any(pattern in full_local_path for pattern in question_files)
+          
+          if not os.path.exists(archive_item_path) and not is_protected:
+            self._svn(user_id, ["rm", "--force", full_local_path])
+
       contents = os.path.join(file_path, ".")
-      self._execute_cmd(["cp", "-rf", contents, user_dir])
+      cmd = ["rsync", "-av"]
+      for pattern in self.vcs_protected:
+          cmd.extend(["--exclude", pattern])
+      cmd.extend([contents, user_dir])
+      self._execute_cmd(cmd, output=True)
       self.logger.log("#mark conflicts as resolved")
       self._svn(user_id, ["resolve", "--accept", "working", "-R", user_path])
+      self.logger.log("#sync current state of files for committing (if during merge we decided to remove files)")
+      self._svn(user_id, ["add", "--force", user_path])
     self.logger.log("#save done changes on branch")
     self._svn(user_id, ["commit", "-m", f'"{msg}"', user_path])
   
@@ -125,9 +150,14 @@ class SVNGraphMapper(GraphMapper):
     for file in conflicting_files:
       if file:
         self.logger.err(f"#viewing conflicts of {file}")
-        file_content = self._execute_cmd(["cat", file], log=False)
-        if file_content.stdout:
-          lines = file_content.stdout.split('\n')
+        try:
+          with open(file, 'r') as f:
+            file_content = f.read()
+        except UnicodeDecodeError:
+          with open(file, 'rb') as f:
+            file_content = f.read().decode('utf-8', errors='replace')
+        if file_content:
+          lines = file_content.split('\n')
           in_conflict = False
           conflict_block = []
           for i, line in enumerate(lines, 1):
@@ -153,11 +183,9 @@ class SVNGraphMapper(GraphMapper):
       log=False
     )
     if result.stdout:
-      for line in result.stdout.split('\n'):
-        if line.startswith('+') or line.startswith('-') or line.startswith('@@'):
-          if line[0] == '-' and line[:3] != '---':
-            continue
-          self.logger.err(f"{line}")
+      decoded_output = result.stdout.decode('utf-8', errors='replace')
+      for line in decoded_output.split('\n'):
+        self.logger.err(f"# {line}")
     else:
       self.logger.err("#no differences with goal image are found")
   

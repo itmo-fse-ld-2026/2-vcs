@@ -56,9 +56,14 @@ class IFMOPortalClient:
           f.write(chunk)
       extract_dir = os.path.join(download_dir, str(commit))
       os.makedirs(extract_dir, exist_ok=True)
-      result = subprocess.run(["unzip", "-qo", filename, "-d", extract_dir], check=True)
-      if result.returncode != 0:
-        raise RuntimeError(f"Unzip failed: {result.stderr}")
+      # check if zip is broken
+      test_zip = subprocess.run(["unzip", "-t", filename], capture_output=True)
+      if test_zip.returncode != 0:
+        print(f"Warning: {filename} is corrupt (error {test_zip.returncode}). Leaving it empty.")
+      else:
+        result = subprocess.run(["unzip", "-qo", filename, "-d", extract_dir], check=True)
+        if result.returncode != 0:
+          raise RuntimeError(f"Unzip failed: {result.stderr}")
       subprocess.run(["rm", "-f", filename], check=True)
       return True, extract_dir, response.status_code
     return False, response.text[:500], response.status_code

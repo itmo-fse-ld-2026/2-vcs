@@ -24,14 +24,16 @@ class GitGraphMapper(GraphMapper):
       self.logger.log(" ".join(args))
     result = super()._execute_cmd(args)
     if output and result.stdout:
-      for line in result.stdout.splitlines():
+      decoded = result.stdout.decode('utf-8', errors='replace')
+      for line in decoded.splitlines():
         self.logger.log(f"# {line}")
     if output and result.stderr:
-      for line in result.stderr.splitlines():
+      decoded = result.stdout.decode('utf-8', errors='replace')
+      for line in decoded.splitlines():
         self.logger.log(f"#! {line}")
     return result 
 
-  def _git(self, user_id: int, args: List[str], show_error: bool=True, output: bool=False) -> tuple[int, str]:
+  def _git(self, user_id: int, args: List[str], show_error: bool=True, output: bool=False) -> tuple[int, bytes]:
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
     result = self._execute_cmd(["git", "-C", user_path, *args], output=output)
     if result.returncode != 0 and show_error:
@@ -87,8 +89,8 @@ class GitGraphMapper(GraphMapper):
   def process_commit(self, user_id: int, commit_id: int, msg: str):
     self.logger.log("#schedule commiting all applied changes")
     self._git(user_id, ["add", "-A"])
-    self.logger.log("#save scheduled changes in the revision")
-    self._git(user_id, ["commit", "-m", f"\"{msg}\""])
+    self.logger.log("#save scheduled changes in the revision (even if nothing is changed)")
+    self._git(user_id, ["commit", "--allow-empty", "-m", f"\"{msg}\""])
 
   def process_merge_commit(self, user_id: int, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     source_branch = f"br-{from_branch_id}"
@@ -106,21 +108,30 @@ class GitGraphMapper(GraphMapper):
       self._log_resolved_conflicts(user_id, file_path)
 
       contents = os.path.join(file_path, ".")
-      self._execute_cmd(["cp", "-rf", contents, user_dir])
+      cmd = ["rsync", "-av", "--delete"]
+      for pattern in self.vcs_protected:
+          cmd.extend(["--exclude", pattern])
+      cmd.extend([contents, user_dir])
+      self._execute_cmd(cmd, output=True)
       self.process_commit(user_id, commit_id, msg)
   
   def _log_merge_conflicts(self, user_id: int):
     _, result = self._git(user_id, ["diff", "--name-only", "--diff-filter=U"], output=True)
-    conflicting_files = result.strip().split('\n')
+    decoded_output = result.decode('utf-8', errors='replace')
+    conflicting_files = decoded_output.strip().split('\n')
     self.logger.mark_conflict_revision()
     for file in conflicting_files:
       if file:
         abs_file = os.path.join(self.local_dir, self.users[user_id].name, file)
         self.logger.err(f"#viewing conflicts of {abs_file}")
-        
-        file_content = self._execute_cmd(["cat", abs_file], log=False)
-        if file_content.stdout:
-          lines = file_content.stdout.split('\n')
+        try:
+          with open(abs_file, 'r') as f:
+            file_content = f.read()
+        except UnicodeDecodeError:
+          with open(abs_file, 'rb') as f:
+            file_content = f.read().decode('utf-8', errors='replace')
+        if file_content:
+          lines = file_content.split('\n')
           in_conflict = False
           conflict_block = []
           
@@ -147,11 +158,9 @@ class GitGraphMapper(GraphMapper):
       log=False
     )
     if result.stdout:
-      for line in result.stdout.split('\n'):
-        if line.startswith('+') or line.startswith('-') or line.startswith('@@'):
-          if line[0] == '-' and line[:3] != '---':
-            continue
-          self.logger.err(f"{line}")
+      decoded_output = result.stdout.decode('utf-8', errors='replace')
+      for line in decoded_output.split('\n'):
+        self.logger.err(f"# {line}")
     else:
       self.logger.err("#no differences with goal image are found")
   
