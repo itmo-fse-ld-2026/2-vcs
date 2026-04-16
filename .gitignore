@@ -7,5 +7,4 @@
 temp/
 __pycache__/
 venv/
-git_project/
-svn_project/
+output/

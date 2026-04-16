@@ -2,24 +2,18 @@ import yaml
 import os
 from typing import Any, Dict
 
+class ConfigLoadError(Exception):
+  pass
+
 def load(file_path: str = "config.yaml") -> Dict[str, Any]:
-  defaults = {
-    "variant": "0",
-    "base_url": "https://se.ifmo.ru/courses/software-engineering-basics",
-    "default_commit_message": "Automated commit",
-    "git_dir": "./git_cache",
-    "svn_dir": "./svn_cache",
-    "git_log": "./git.log",
-    "svn_log": "./svn.log",
-  }
-  
   if not os.path.exists(file_path):
-    print("Using default config.")
-    return defaults
+    raise FileNotFoundError(f"Config file not found: {file_path}")
 
   try:
     with open(file_path, "r") as f:
       config = yaml.safe_load(f)
-      return {**defaults, **(config or {})}
-  except (yaml.YAMLError, IOError):
-    return defaults
+      if config is None:
+        raise ConfigLoadError(f"Config file is empty: {file_path}")
+      return {**config}
+  except (yaml.YAMLError, IOError) as e:
+    raise ConfigLoadError(f"Failed to load config: {e}")

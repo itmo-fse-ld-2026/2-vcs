@@ -19,22 +19,31 @@ class GitGraphMapper(GraphMapper):
     super().__init__(client, asker, users, ['.git'], work_dir, remote_subdir, local_subdir, diff_subdir)
     self.logger = logger
   
-  def _execute_cmd(self, *args: str):
+  def _execute_cmd(self, args: List[str], output: bool=False):
     self.logger.log(" ".join(args))
-    return super()._execute_cmd(*args)
+    result = super()._execute_cmd(args)
+    if output and result.stdout:
+      for line in result.stdout.splitlines():
+        self.logger.log(f"# {line}")
+    return result 
 
   def _git(self, user_id: int, *args: str):
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
-    result = self._execute_cmd("git", "-C", user_path, *args)
+    result = self._execute_cmd(["git", "-C", user_path, *args])
     if result.returncode != 0:
       raise RuntimeError(f"Git Error: {result.stderr}")
     return result.stdout
 
   def init_repository(self):
     super().init_repository()
-    result = self._execute_cmd("git", "-C", self.remote_dir, "init", "--bare")
+    self.logger.mark_section("structure")
+    self._execute_cmd(["tree", "-dL", "1", self.work_dir], output=True)
+
+    self.logger.mark_section("remote_configuration")
+    result = self._execute_cmd(["git", "-C", self.remote_dir, "init", "--bare"])
     if result.returncode != 0:
       raise RuntimeError(f"Git Error: {result.stderr}")
+    self.logger.mark_section("local_configuration")
     for user in self.users:
       self._git(user.id, "init")
       self._git(user.id, "config", "user.name", user.name)

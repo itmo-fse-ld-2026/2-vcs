@@ -20,28 +20,36 @@ class SVNGraphMapper(GraphMapper):
     self.logger = logger
     self.remote_url = f"file://{self.remote_dir}"
   
-  def _execute_cmd(self, *args: str):
+  def _execute_cmd(self, args: List[str], output: bool=False):
     self.logger.log(" ".join(args))
-    return super()._execute_cmd(*args)
+    result = super()._execute_cmd(args)
+    if output and result.stdout:
+      for line in result.stdout.splitlines():
+        self.logger.log(f"# {line}")
+    return result 
 
   def _svn(self, user_id: int, *args: str):
-    result = self._execute_cmd("svn", "--username", self.users[user_id].name, *args)
+    result = self._execute_cmd(["svn", "--username", self.users[user_id].name, *args])
     if result.returncode != 0:
       raise RuntimeError(f"Subversion Error: {result.stderr}")
     return result.stdout
 
   def init_repository(self):
     super().init_repository()
-    result = self._execute_cmd("svnadmin", "create", self.remote_dir)
+    self.logger.mark_section("structure")
+    self._execute_cmd(["tree", "-dL", "1", self.work_dir], output=True)
+
+    self.logger.mark_section("remote_configuration")
+    result = self._execute_cmd(["svnadmin", "create", self.remote_dir])
     if result.returncode != 0:
       raise RuntimeError(f"Subversion Error: {result.stderr}")
     trunk_url = f"{self.remote_url}/trunk"
     self._svn(self.users[0].id, "mkdir", trunk_url, "-m", f"\"create 'trunk' directory\"")
     self._svn(self.users[0].id, "mkdir", f"{self.remote_url}/branches", "-m", f"\"create 'branches' directory\"")
+    self.logger.mark_section("local_configuration")
     for user in self.users:
       user_path = os.path.join(self.local_dir, user.name)
       self._svn(user.id, "checkout", trunk_url, user_path)
-      # self._svn("mkdir", "branches")
   
   def process_fetch(self, user_id: int):
     self.logger.increment_revision()
