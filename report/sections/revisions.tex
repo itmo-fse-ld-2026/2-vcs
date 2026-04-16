@@ -275,10 +275,12 @@ git -C ./output/git_project/local/Blue diff --name-only --diff-filter=U
 #having problems with merging, trying to solve them...
 rsync -av --delete --exclude .git ./output/git_project/diff_cache/8/. ./output/git_project/local/Blue
 # sending incremental file list
+# C.java
+# E.java
 # Lab4.java
 # 
-# sent 434 bytes  received 35 bytes  938.00 bytes/sec
-# total size is 3,375  speedup is 7.20
+# sent 3,596 bytes  received 73 bytes  7,338.00 bytes/sec
+# total size is 3,375  speedup is 0.92
 #schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
 #save scheduled changes in the revision (even if nothing is changed)
@@ -292,27 +294,34 @@ git -C ./output/git_project/local/Blue push -u origin br-1
 #bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
 #apply changes from different branch
-svn --username Blue merge --non-interactive --accept postpone ./output/svn_project/local/Blue/branches/br-2 ./output/svn_project/local/Blue/branches/br-1
+svn --username Blue merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Blue
+# --- Merging r6 through r9 into 'output/svn_project/local/Blue':
+# C    output/svn_project/local/Blue/Lab4.java
+# --- Recording mergeinfo for merge of r6 through r9 into 'output/svn_project/local/Blue':
+#  U   output/svn_project/local/Blue
+# Summary of conflicts:
+#   Text conflicts: 1
+#! svn: E155015: One or more conflicts were produced while merging r5:9 into
+#! '/project/output/svn_project/local/Blue' --
+#! resolve all conflicts and rerun the merge to apply the remaining
+#! unmerged revisions
 #ensuring the current status
 svn --username Blue status ./output/svn_project/local/Blue
+#  M      output/svn_project/local/Blue
+# C       output/svn_project/local/Blue/Lab4.java
+# ?       output/svn_project/local/Blue/Lab4.java.merge-left.r5
+# ?       output/svn_project/local/Blue/Lab4.java.merge-right.r9
+# ?       output/svn_project/local/Blue/Lab4.java.working
+# Summary of conflicts:
+#   Text conflicts: 1
 #having problems with merging, trying to solve them...
 rsync -av --exclude .svn ./output/svn_project/diff_cache/8/. ./output/svn_project/local/Blue
 # sending incremental file list
 # ./
-# C.java
-# E.java
 # Lab4.java
 # 
-# sent 3,600 bytes  received 76 bytes  7,352.00 bytes/sec
-# total size is 3,375  speedup is 0.92
-#! sending incremental file list
-#! ./
-#! C.java
-#! E.java
-#! Lab4.java
-#! 
-#! sent 3,600 bytes  received 76 bytes  7,352.00 bytes/sec
-#! total size is 3,375  speedup is 0.92
+# sent 436 bytes  received 38 bytes  948.00 bytes/sec
+# total size is 3,375  speedup is 7.12
 #mark conflicts as resolved
 svn --username Blue resolve --accept working -R ./output/svn_project/local/Blue
 #sync current state of files for committing (if during merge we decided to remove files)
@@ -329,7 +338,7 @@ svn --username Blue commit -m "merge commit" ./output/svn_project/local/Blue
 \begin{lstlisting}
 #viewing conflicts of ./output/git_project/local/Blue/Lab4.java
 Line 22: <<<<<<< HEAD
-Line 23: previous : 3
+Line 23: previous : 2
 Line 24: =======
 Line 25: previous : 5
 Line 26: >>>>>>> br-2
@@ -340,14 +349,14 @@ Line 26: >>>>>>> br-2
 \begin{lstlisting}
 # Only in ./output/git_project/local/Blue: .git
 # diff -r -u ./output/git_project/local/Blue/Lab4.java ./output/git_project/diff_cache/8/Lab4.java
-# --- ./output/git_project/local/Blue/Lab4.java	2026-04-16 18:01:27.324068107 +0000
-# +++ ./output/git_project/diff_cache/8/Lab4.java	2026-04-16 18:04:30.000000000 +0000
+# --- ./output/git_project/local/Blue/Lab4.java	2026-04-16 18:20:23.072077734 +0000
+# +++ ./output/git_project/diff_cache/8/Lab4.java	2026-04-16 18:23:26.000000000 +0000
 # @@ -19,8 +19,5 @@
 #    b.t26(c);
 #    }
 #  }
 # -<<<<<<< HEAD
-# -previous : 3
+# -previous : 2
 # -=======
 # -previous : 5
 # ->>>>>>> br-2
@@ -361,7 +370,14 @@ Line 26: >>>>>>> br-2
 В процессе создания ревизии в \texttt{Subversion} возникли следующие конфликты:
 
 \begin{lstlisting}
-
+#viewing conflicts of output/svn_project/local/Blue/Lab4.java
+Line 22: <<<<<<< .working
+Line 23: previous : 3
+Line 24: ||||||| .merge-left.r5
+Line 25: previous : 0
+Line 26: =======
+Line 27: previous : 1
+Line 28: >>>>>>> .merge-right.r9
 \end{lstlisting}
 
 Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
@@ -369,15 +385,24 @@ Line 26: >>>>>>> br-2
 \begin{lstlisting}
 # Only in ./output/svn_project/local/Blue: .svn
 # diff -r -u ./output/svn_project/local/Blue/Lab4.java ./output/svn_project/diff_cache/8/Lab4.java
-# --- ./output/svn_project/local/Blue/Lab4.java	2026-04-16 18:04:38.000000000 +0000
-# +++ ./output/svn_project/diff_cache/8/Lab4.java	2026-04-16 18:04:40.000000000 +0000
-# @@ -19,4 +19,5 @@
+# --- ./output/svn_project/local/Blue/Lab4.java	2026-04-16 18:20:31.984077810 +0000
+# +++ ./output/svn_project/diff_cache/8/Lab4.java	2026-04-16 18:23:34.000000000 +0000
+# @@ -19,10 +19,5 @@
 #    b.t26(c);
 #    }
 #  }
+# -<<<<<<< .working
 # -previous : 3
+# -||||||| .merge-left.r5
+# -previous : 0
+# -=======
+# -previous : 1
+# ->>>>>>> .merge-right.r9
 # +previous : 6
 # +previous : 7
+# Only in ./output/svn_project/local/Blue: Lab4.java.merge-left.r5
+# Only in ./output/svn_project/local/Blue: Lab4.java.merge-right.r9
+# Only in ./output/svn_project/local/Blue: Lab4.java.working
 #
 \end{lstlisting}
 
@@ -553,59 +578,16 @@ svn --username Red update ./output/svn_project/local/Red
 #change local branch
 svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
 #apply changes from different branch
-svn --username Red merge --non-interactive --accept postpone ./output/svn_project/local/Red/branches/br-1 ./output/svn_project/local/Red/branches/br-0
+svn --username Red merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-1 ./output/svn_project/local/Red
+# --- Merging differences between repository URLs into 'output/svn_project/local/Red':
+# U    output/svn_project/local/Red/Lab4.java
+# --- Recording mergeinfo for merge between repository URLs into 'output/svn_project/local/Red':
+#  U   output/svn_project/local/Red
 #ensuring the current status
 svn --username Red status ./output/svn_project/local/Red
-#having problems with merging, trying to solve them...
-rsync -av --exclude .svn ./output/svn_project/diff_cache/14/. ./output/svn_project/local/Red
-# sending incremental file list
-# C.java
-# E.java
-# Lab4.java
-# 
-# sent 3,597 bytes  received 73 bytes  7,340.00 bytes/sec
-# total size is 3,376  speedup is 0.92
-#! sending incremental file list
-#! C.java
-#! E.java
-#! Lab4.java
-#! 
-#! sent 3,597 bytes  received 73 bytes  7,340.00 bytes/sec
-#! total size is 3,376  speedup is 0.92
-#mark conflicts as resolved
-svn --username Red resolve --accept working -R ./output/svn_project/local/Red
-#sync current state of files for committing (if during merge we decided to remove files)
-svn --username Red add --force ./output/svn_project/local/Red
+#  M      output/svn_project/local/Red
+# M       output/svn_project/local/Red/Lab4.java
 #save done changes on branch
 svn --username Red commit -m "merge commit" ./output/svn_project/local/Red
-\end{lstlisting}
-
-
-\subsubsection{Разрешение конфликтов}
-
-
-
-
-В процессе создания ревизии в \texttt{Subversion} возникли следующие конфликты:
-
-\begin{lstlisting}
-
-\end{lstlisting}
-
-Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
-
-\begin{lstlisting}
-# Only in ./output/svn_project/local/Red: .svn
-# diff -r -u ./output/svn_project/local/Red/Lab4.java ./output/svn_project/diff_cache/14/Lab4.java
-# --- ./output/svn_project/local/Red/Lab4.java	2026-04-16 18:01:39.116068207 +0000
-# +++ ./output/svn_project/diff_cache/14/Lab4.java	2026-04-16 18:04:42.000000000 +0000
-# @@ -19,4 +19,5 @@
-#    b.t26(c);
-#    }
-#  }
-# -previous : 1
-# +previous : 4
-# +previous : 13
-#
 \end{lstlisting}
 

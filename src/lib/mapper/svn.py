@@ -28,7 +28,7 @@ class SVNGraphMapper(GraphMapper):
       decoded = result.stdout.decode('utf-8', errors='replace')
       for line in decoded.splitlines():
         self.logger.log(f"# {line}")
-      decoded = result.stdout.decode('utf-8', errors='replace')
+      decoded = result.stderr.decode('utf-8', errors='replace')
       for line in decoded.splitlines():
         self.logger.log(f"#! {line}")
     return result 
@@ -90,10 +90,9 @@ class SVNGraphMapper(GraphMapper):
 
   def process_merge_commit(self, user_id: int, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
-    source_branch = f"{user_path}/branches/br-{from_branch_id}"
-    dest_branch = f"{user_path}/branches/br-{to_branch_id}"
+    source_url = f"{self.remote_url}/branches/br-{from_branch_id}"
     self.logger.log("#apply changes from different branch")
-    error, _ = self._svn(user_id, ["merge", "--non-interactive", "--accept", "postpone", source_branch, dest_branch], output=True, show_error=False)
+    error, _ = self._svn(user_id, ["merge", "--non-interactive", "--accept", "postpone", source_url, user_path], output=True, show_error=False)
     self.logger.log("#ensuring the current status")
     _, status_output = self._svn(user_id, ["status", user_path], output=True)
     has_conflict = any(line.decode('utf-8', errors='replace').startswith('C') for line in status_output.splitlines())
