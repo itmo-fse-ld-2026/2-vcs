@@ -1,7 +1,8 @@
 from lib.ifmo import IFMOPortalClient
 from lib.mapper.git import GitGraphMapper
 from lib.mapper.svn import SVNGraphMapper
-from lib.asker.default import InteractiveAsker
+from lib.asker.interactive import InteractiveAsker
+from lib.asker.default import DefaultAsker
 from lib.asker.silent import SilentAsker
 from lib.asker.cumulative import CumulativeAsker
 from lib.primitives import User
@@ -16,13 +17,12 @@ import subprocess
 if __name__ == "__main__":
   cfg = config.load()
   
-  portal_client = IFMOPortalClient(cfg['variant'], cfg['base_url'])
+  portal_client = IFMOPortalClient(cfg['variant'], cfg['base_url'], os.path.join(cfg['output_dir'], ".cache"))
 
   commit_messages: Dict[int, str] = dict()
-  asker = InteractiveAsker()
+  asker = InteractiveAsker() if cfg['ask_commit_messages'] else DefaultAsker()
   silent_asker = SilentAsker(commit_messages)
   cumulative_asker = CumulativeAsker(asker, commit_messages)
-  users = [User(name="Red", email="red@yandex.ru", id=0, branch=-1), User(name="Blue", email="blue@yandex.ru", id=1, branch=-1)]
 
   out_dir: str = cfg['output_dir']
   if os.path.exists(out_dir):
@@ -31,13 +31,19 @@ if __name__ == "__main__":
 
   git_log: str = os.path.join(out_dir, cfg['git_log'])
   svn_log: str = os.path.join(out_dir, cfg['svn_log'])
-  git_logger = CommitLogger(git_log, "git")
-  svn_logger = CommitLogger(svn_log, "svn")
+  git_err: str = os.path.join(out_dir, cfg['git_err'])
+  svn_err: str = os.path.join(out_dir, cfg['svn_err'])
+  git_logger = CommitLogger(git_log, git_err, "git")
+  svn_logger = CommitLogger(svn_log, svn_err, "svn")
 
   git_dir: str = os.path.join(out_dir, cfg['git_dir'])
   svn_dir: str = os.path.join(out_dir, cfg['svn_dir'])
-  git_mapper = GitGraphMapper(portal_client, cumulative_asker, users, git_logger, git_dir)
-  svn_mapper = SVNGraphMapper(portal_client, silent_asker, users, svn_logger, svn_dir)
+
+  git_users = [User(name="Red", email="red@yandex.ru", id=0, branch=-1), User(name="Blue", email="blue@yandex.ru", id=1, branch=-1)]
+  svn_users = [User(name="Red", email="red@yandex.ru", id=0, branch=-1), User(name="Blue", email="blue@yandex.ru", id=1, branch=-1)]
+
+  git_mapper = GitGraphMapper(portal_client, cumulative_asker, git_users, git_logger, git_dir)
+  svn_mapper = SVNGraphMapper(portal_client, silent_asker, svn_users, svn_logger, svn_dir)
 
   plotter = DefaultPlotter(
     {0: "red", 1: "blue"},
@@ -61,6 +67,8 @@ if __name__ == "__main__":
 
     reporter.parse_artifact(git_log)
     reporter.parse_artifact(svn_log)
+    reporter.parse_artifact(git_err)
+    reporter.parse_artifact(svn_err)
     reporter.compile_patterns()
   else:
     print(f"Error: {status} - {result}")

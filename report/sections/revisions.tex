@@ -6,449 +6,588 @@
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
+#receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
+#rename current branch
 git -C ./output/git_project/local/Red branch -m br-0
-unzip -q ./output/git_project/diff_cache/0.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/0.zip
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/0/. ./output/git_project/local/Red
+#schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m adsgf
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r0"
+#send changes to the remote repository
 git -C ./output/git_project/local/Red push -u origin br-0
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
+#bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
 svn --username Red copy file:///project/output/svn_project/remote/trunk file:///project/output/svn_project/remote/branches/br-0 -m "create a new branch br-0"
-unzip -q ./output/svn_project/diff_cache/0.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/0.zip
+#change local branch
+svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/0/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m adsgf ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r0" ./output/svn_project/local/Red
 \end{lstlisting}
+
+
 \subsection{Ревизия №1}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
+#receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
-git -C ./output/git_project/local/Red switch br-0
-git -C ./output/git_project/local/Red branch br-2 br-0
-git -C ./output/git_project/local/Red switch br-2
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/1.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/1.zip
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/1/. ./output/git_project/local/Red
+#schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m asdf
-git -C ./output/git_project/local/Red push -u origin br-2
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r1"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-0
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
+#bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
-svn --username Red copy file:///project/output/svn_project/remote/branches/br-0 file:///project/output/svn_project/remote/branches/br-2 -m create a new branch br-2 from br-0
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/1.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/1.zip
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/1/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m asdf ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r1" ./output/svn_project/local/Red
 \end{lstlisting}
+
+
 \subsection{Ревизия №2}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
+#receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
-git -C ./output/git_project/local/Blue switch br-2
-git -C ./output/git_project/local/Blue branch br-1 br-2
+#change to the desired branch (it may be mapped to the remote one)
+git -C ./output/git_project/local/Blue switch br-0
+#create a new branch from the specified branch
+git -C ./output/git_project/local/Blue branch br-1 br-0
+#change to the desired branch
 git -C ./output/git_project/local/Blue switch br-1
-rm -rf ./output/git_project/local/Blue/K.java
-rm -rf ./output/git_project/local/Blue/A.java
-rm -rf ./output/git_project/local/Blue/G.java
-rm -rf ./output/git_project/local/Blue/D.java
-unzip -q ./output/git_project/diff_cache/2.zip -d ./output/git_project/local/Blue
-rm -f ./output/git_project/diff_cache/2.zip
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/2/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-git -C ./output/git_project/local/Blue commit -m adsg
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r2"
+#send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
+#bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
-svn --username Blue copy file:///project/output/svn_project/remote/branches/br-2 file:///project/output/svn_project/remote/branches/br-1 -m create a new branch br-1 from br-2
-rm -rf ./output/svn_project/local/Blue/K.java
-rm -rf ./output/svn_project/local/Blue/A.java
-rm -rf ./output/svn_project/local/Blue/G.java
-rm -rf ./output/svn_project/local/Blue/D.java
-unzip -q ./output/svn_project/diff_cache/2.zip -d ./output/svn_project/local/Blue
-rm -f ./output/svn_project/diff_cache/2.zip
+svn --username Blue copy file:///project/output/svn_project/remote/branches/br-0 file:///project/output/svn_project/remote/branches/br-1 -m "create a new branch br-1 from br-0"
+#change local branch
+svn --username Blue switch file:///project/output/svn_project/remote/branches/br-1 ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/2/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
 svn --username Blue add --force ./output/svn_project/local/Blue
-svn --username Blue commit -m adsg ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r2" ./output/svn_project/local/Blue
 \end{lstlisting}
+
+
 \subsection{Ревизия №3}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
-git -C ./output/git_project/local/Red fetch origin
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/3.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/3.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m adsf
-git -C ./output/git_project/local/Red push -u origin br-2
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/3/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r3"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
-svn --username Red update ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/*
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/EykZle0RLh.dlr
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/3.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/3.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m adsf ./output/svn_project/local/Red
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/3/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r3" ./output/svn_project/local/Blue
 \end{lstlisting}
+
+
 \subsection{Ревизия №4}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
+#receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
-rm -rf ./output/git_project/local/Red/HIs4rTdlrE.2tl
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/*
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/4.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/4.zip
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/4/. ./output/git_project/local/Red
+#schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m asdg
-git -C ./output/git_project/local/Red push -u origin br-2
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r4"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-0
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
+#bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/HIs4rTdlrE.2tl
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/*
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/EykZle0RLh.dlr
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/4.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/4.zip
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/4/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m asdg ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r4" ./output/svn_project/local/Red
 \end{lstlisting}
+
+
 \subsection{Ревизия №5}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
+#receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
+#change to the desired branch (it may be mapped to the remote one)
 git -C ./output/git_project/local/Red switch br-0
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/5.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/5.zip
+#create a new branch from the specified branch
+git -C ./output/git_project/local/Red branch br-2 br-0
+#change to the desired branch
+git -C ./output/git_project/local/Red switch br-2
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/5/. ./output/git_project/local/Red
+#schedule commiting all applied changes
 git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m a
-git -C ./output/git_project/local/Red push -u origin br-0
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r5"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-2
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
+#bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
-svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
-unzip -q ./output/svn_project/diff_cache/5.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/5.zip
+svn --username Red copy file:///project/output/svn_project/remote/branches/br-0 file:///project/output/svn_project/remote/branches/br-2 -m "create a new branch br-2 from br-0"
+#change local branch
+svn --username Red switch file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/5/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
 svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m a ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r5" ./output/svn_project/local/Red
 \end{lstlisting}
+
+
 \subsection{Ревизия №6}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
-git -C ./output/git_project/local/Red fetch origin
-git -C ./output/git_project/local/Red switch br-2
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/6.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/6.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m adsf
-git -C ./output/git_project/local/Red push -u origin br-2
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/6/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r6"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
-svn --username Red update ./output/svn_project/local/Red
-svn --username Red switch file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Red
-unzip -q ./output/svn_project/diff_cache/6.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/6.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m adsf ./output/svn_project/local/Red
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/6/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r6" ./output/svn_project/local/Blue
 \end{lstlisting}
+
+
 \subsection{Ревизия №7}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
-git -C ./output/git_project/local/Blue fetch origin
-rm -rf ./output/git_project/local/Blue/K.java
-rm -rf ./output/git_project/local/Blue/A.java
-rm -rf ./output/git_project/local/Blue/*
-rm -rf ./output/git_project/local/Blue/G.java
-rm -rf ./output/git_project/local/Blue/EykZle0RLh.dlr
-rm -rf ./output/git_project/local/Blue/D.java
-unzip -q ./output/git_project/diff_cache/7.zip -d ./output/git_project/local/Blue
-rm -f ./output/git_project/diff_cache/7.zip
-git -C ./output/git_project/local/Blue add -A
-git -C ./output/git_project/local/Blue commit -m adsg
-git -C ./output/git_project/local/Blue push -u origin br-1
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Red fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/7/. ./output/git_project/local/Red
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Red add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r7"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-2
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
-svn --username Blue update ./output/svn_project/local/Blue
-rm -rf ./output/svn_project/local/Blue/HIs4rTdlrE.2tl
-rm -rf ./output/svn_project/local/Blue/K.java
-rm -rf ./output/svn_project/local/Blue/A.java
-rm -rf ./output/svn_project/local/Blue/*
-rm -rf ./output/svn_project/local/Blue/G.java
-rm -rf ./output/svn_project/local/Blue/EykZle0RLh.dlr
-rm -rf ./output/svn_project/local/Blue/D.java
-unzip -q ./output/svn_project/diff_cache/7.zip -d ./output/svn_project/local/Blue
-rm -f ./output/svn_project/diff_cache/7.zip
-svn --username Blue add --force ./output/svn_project/local/Blue
-svn --username Blue commit -m adsg ./output/svn_project/local/Blue
+#bring changes from repository
+svn --username Red update ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/7/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
+svn --username Red add --force ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r7" ./output/svn_project/local/Red
 \end{lstlisting}
+
+
 \subsection{Ревизия №8}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
-git -C ./output/git_project/local/Red fetch origin
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/8.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/8.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m asdg
-git -C ./output/git_project/local/Red push -u origin br-2
-\end{lstlisting}
-
-Листинг Bash-скрипта для системы \texttt{Subversion}:
-\begin{lstlisting}
-svn --username Red update ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/8.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/8.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m asdg ./output/svn_project/local/Red
-\end{lstlisting}
-\subsection{Ревизия №9}
-
-Листинг Bash-скрипта для системы \texttt{Git}:
-\begin{lstlisting}
-git -C ./output/git_project/local/Red fetch origin
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/AMJljV71XI.gO7
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/9.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/9.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m adsf
-git -C ./output/git_project/local/Red push -u origin br-2
-\end{lstlisting}
-
-Листинг Bash-скрипта для системы \texttt{Subversion}:
-\begin{lstlisting}
-svn --username Red update ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/AMJljV71XI.gO7
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/9.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/9.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m adsf ./output/svn_project/local/Red
-\end{lstlisting}
-\subsection{Ревизия №10}
-
-Листинг Bash-скрипта для системы \texttt{Git}:
-\begin{lstlisting}
-git -C ./output/git_project/local/Red fetch origin
-git -C ./output/git_project/local/Red switch br-0
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/10.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/10.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m adg
-git -C ./output/git_project/local/Red push -u origin br-0
-\end{lstlisting}
-
-Листинг Bash-скрипта для системы \texttt{Subversion}:
-\begin{lstlisting}
-svn --username Red update ./output/svn_project/local/Red
-svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/10.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/10.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m adg ./output/svn_project/local/Red
-\end{lstlisting}
-\subsection{Ревизия №11}
-
-Листинг Bash-скрипта для системы \texttt{Git}:
-\begin{lstlisting}
-git -C ./output/git_project/local/Red fetch origin
-git -C ./output/git_project/local/Red switch br-2
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/*
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/11.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/11.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m sadf
-git -C ./output/git_project/local/Red push -u origin br-2
-\end{lstlisting}
-
-Листинг Bash-скрипта для системы \texttt{Subversion}:
-\begin{lstlisting}
-svn --username Red update ./output/svn_project/local/Red
-svn --username Red switch file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/*
-rm -rf ./output/svn_project/local/Red/AMJljV71XI.gO7
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/11.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/11.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m sadf ./output/svn_project/local/Red
-\end{lstlisting}
-\subsection{Ревизия №12}
-
-Листинг Bash-скрипта для системы \texttt{Git}:
-\begin{lstlisting}
-git -C ./output/git_project/local/Red fetch origin
-git -C ./output/git_project/local/Red switch br-0
-rm -rf ./output/git_project/local/Red/HIs4rTdlrE.2tl
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/*
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/12.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/12.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m gasdg
-git -C ./output/git_project/local/Red push -u origin br-0
-\end{lstlisting}
-
-Листинг Bash-скрипта для системы \texttt{Subversion}:
-\begin{lstlisting}
-svn --username Red update ./output/svn_project/local/Red
-svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/HIs4rTdlrE.2tl
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/*
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/12.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/12.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m gasdg ./output/svn_project/local/Red
-\end{lstlisting}
-\subsection{Ревизия №13}
-
-Листинг Bash-скрипта для системы \texttt{Git}:
-\begin{lstlisting}
+#receive updates from repository for remote branches
 git -C ./output/git_project/local/Blue fetch origin
-rm -rf ./output/git_project/local/Blue/K.java
-rm -rf ./output/git_project/local/Blue/A.java
-rm -rf ./output/git_project/local/Blue/G.java
-rm -rf ./output/git_project/local/Blue/D.java
-unzip -q ./output/git_project/diff_cache/13.zip -d ./output/git_project/local/Blue
-rm -f ./output/git_project/diff_cache/13.zip
+#sync state of the desired branch with the remote repository
+git -C ./output/git_project/local/Blue branch -f br-2 origin/br-2
+#apply changes from branch into single commit, preserving remote branch
+git -C ./output/git_project/local/Blue merge br-2 --no-ff -m "merge commit"
+# Auto-merging Lab4.java
+# CONFLICT (content): Merge conflict in Lab4.java
+# Automatic merge failed; fix conflicts and then commit the result.
+git -C ./output/git_project/local/Blue diff --name-only --diff-filter=U
+# Lab4.java
+#having problems with merging, trying to solve them...
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/8/. ./output/git_project/local/Blue
+# sending incremental file list
+# C.java
+# E.java
+# Lab4.java
+# 
+# sent 3,596 bytes  received 73 bytes  7,338.00 bytes/sec
+# total size is 3,375  speedup is 0.92
+#schedule commiting all applied changes
 git -C ./output/git_project/local/Blue add -A
-git -C ./output/git_project/local/Blue commit -m sdac
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "merge commit"
+#send changes to the remote repository
 git -C ./output/git_project/local/Blue push -u origin br-1
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
+#bring changes from repository
 svn --username Blue update ./output/svn_project/local/Blue
-rm -rf ./output/svn_project/local/Blue/HIs4rTdlrE.2tl
-rm -rf ./output/svn_project/local/Blue/K.java
-rm -rf ./output/svn_project/local/Blue/A.java
-rm -rf ./output/svn_project/local/Blue/*
-rm -rf ./output/svn_project/local/Blue/G.java
-rm -rf ./output/svn_project/local/Blue/EykZle0RLh.dlr
-rm -rf ./output/svn_project/local/Blue/D.java
-unzip -q ./output/svn_project/diff_cache/13.zip -d ./output/svn_project/local/Blue
-rm -f ./output/svn_project/diff_cache/13.zip
+#apply changes from different branch
+svn --username Blue merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Blue
+# --- Merging r6 through r9 into 'output/svn_project/local/Blue':
+# C    output/svn_project/local/Blue/Lab4.java
+# --- Recording mergeinfo for merge of r6 through r9 into 'output/svn_project/local/Blue':
+#  U   output/svn_project/local/Blue
+# Summary of conflicts:
+#   Text conflicts: 1
+#! svn: E155015: One or more conflicts were produced while merging r5:9 into
+#! '/project/output/svn_project/local/Blue' --
+#! resolve all conflicts and rerun the merge to apply the remaining
+#! unmerged revisions
+#ensuring the current status
+svn --username Blue status ./output/svn_project/local/Blue
+#  M      output/svn_project/local/Blue
+# C       output/svn_project/local/Blue/Lab4.java
+# ?       output/svn_project/local/Blue/Lab4.java.merge-left.r5
+# ?       output/svn_project/local/Blue/Lab4.java.merge-right.r9
+# ?       output/svn_project/local/Blue/Lab4.java.working
+# Summary of conflicts:
+#   Text conflicts: 1
+#having problems with merging, trying to solve them...
+rsync -av --exclude .svn ./output/svn_project/diff_cache/8/. ./output/svn_project/local/Blue
+# sending incremental file list
+# ./
+# Lab4.java
+# 
+# sent 436 bytes  received 38 bytes  948.00 bytes/sec
+# total size is 3,375  speedup is 7.12
+#mark conflicts as resolved
+svn --username Blue resolve --accept working -R ./output/svn_project/local/Blue
+#sync current state of files for committing (if during merge we decided to remove files)
 svn --username Blue add --force ./output/svn_project/local/Blue
-svn --username Blue commit -m sdac ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "merge commit" ./output/svn_project/local/Blue
 \end{lstlisting}
+
+
+\subsubsection{Разрешение конфликтов}
+
+
+В процессе создания коммита в \texttt{Git} возникли следующие конфликты:
+\begin{lstlisting}
+#viewing conflicts of ./output/git_project/local/Blue/Lab4.java
+Line 22: <<<<<<< HEAD
+Line 23: previous : 2
+Line 24: =======
+Line 25: previous : 5
+Line 26: >>>>>>> br-2
+\end{lstlisting}
+
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
+
+\begin{lstlisting}
+# Only in ./output/git_project/local/Blue: .git
+# diff -r -u ./output/git_project/local/Blue/Lab4.java ./output/git_project/diff_cache/8/Lab4.java
+# --- ./output/git_project/local/Blue/Lab4.java	2026-04-16 18:20:23.072077734 +0000
+# +++ ./output/git_project/diff_cache/8/Lab4.java	2026-04-16 18:23:26.000000000 +0000
+# @@ -19,8 +19,5 @@
+#    b.t26(c);
+#    }
+#  }
+# -<<<<<<< HEAD
+# -previous : 2
+# -=======
+# -previous : 5
+# ->>>>>>> br-2
+# +previous : 6
+# +previous : 7
+#
+\end{lstlisting}
+
+
+
+В процессе создания ревизии в \texttt{Subversion} возникли следующие конфликты:
+
+\begin{lstlisting}
+#viewing conflicts of output/svn_project/local/Blue/Lab4.java
+Line 22: <<<<<<< .working
+Line 23: previous : 3
+Line 24: ||||||| .merge-left.r5
+Line 25: previous : 0
+Line 26: =======
+Line 27: previous : 1
+Line 28: >>>>>>> .merge-right.r9
+\end{lstlisting}
+
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
+
+\begin{lstlisting}
+# Only in ./output/svn_project/local/Blue: .svn
+# diff -r -u ./output/svn_project/local/Blue/Lab4.java ./output/svn_project/diff_cache/8/Lab4.java
+# --- ./output/svn_project/local/Blue/Lab4.java	2026-04-16 18:20:31.984077810 +0000
+# +++ ./output/svn_project/diff_cache/8/Lab4.java	2026-04-16 18:23:34.000000000 +0000
+# @@ -19,10 +19,5 @@
+#    b.t26(c);
+#    }
+#  }
+# -<<<<<<< .working
+# -previous : 3
+# -||||||| .merge-left.r5
+# -previous : 0
+# -=======
+# -previous : 1
+# ->>>>>>> .merge-right.r9
+# +previous : 6
+# +previous : 7
+# Only in ./output/svn_project/local/Blue: Lab4.java.merge-left.r5
+# Only in ./output/svn_project/local/Blue: Lab4.java.merge-right.r9
+# Only in ./output/svn_project/local/Blue: Lab4.java.working
+#
+\end{lstlisting}
+
+
+\subsection{Ревизия №9}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/9/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r9"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/9/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r9" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №10}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/10/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r10"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/10/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r10" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №11}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/11/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r11"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/11/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r11" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №12}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/12/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r12"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/12/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r12" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №13}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --exclude .git ./output/git_project/diff_cache/13/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r13"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --exclude .svn ./output/svn_project/diff_cache/13/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r13" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
 \subsection{Ревизия №14}
 
 Листинг Bash-скрипта для системы \texttt{Git}:
 \begin{lstlisting}
+#receive updates from repository for remote branches
 git -C ./output/git_project/local/Red fetch origin
-rm -rf ./output/git_project/local/Red/K.java
-rm -rf ./output/git_project/local/Red/A.java
-rm -rf ./output/git_project/local/Red/G.java
-rm -rf ./output/git_project/local/Red/D.java
-unzip -q ./output/git_project/diff_cache/14.zip -d ./output/git_project/local/Red
-rm -f ./output/git_project/diff_cache/14.zip
-git -C ./output/git_project/local/Red add -A
-git -C ./output/git_project/local/Red commit -m sadf
+#change to the desired branch
+git -C ./output/git_project/local/Red switch br-0
+#sync state of the desired branch with the remote repository
+git -C ./output/git_project/local/Red branch -f br-1 origin/br-1
+#apply changes from branch into single commit, preserving remote branch
+git -C ./output/git_project/local/Red merge br-1 --no-ff -m "merge commit"
+# Merge made by the 'ort' strategy.
+#  Lab4.java | 2 +-
+#  1 file changed, 1 insertion(+), 1 deletion(-)
+#send changes to the remote repository
 git -C ./output/git_project/local/Red push -u origin br-0
 \end{lstlisting}
 
 Листинг Bash-скрипта для системы \texttt{Subversion}:
 \begin{lstlisting}
+#bring changes from repository
 svn --username Red update ./output/svn_project/local/Red
-rm -rf ./output/svn_project/local/Red/HIs4rTdlrE.2tl
-rm -rf ./output/svn_project/local/Red/K.java
-rm -rf ./output/svn_project/local/Red/A.java
-rm -rf ./output/svn_project/local/Red/*
-rm -rf ./output/svn_project/local/Red/G.java
-rm -rf ./output/svn_project/local/Red/D.java
-unzip -q ./output/svn_project/diff_cache/14.zip -d ./output/svn_project/local/Red
-rm -f ./output/svn_project/diff_cache/14.zip
-svn --username Red add --force ./output/svn_project/local/Red
-svn --username Red commit -m sadf ./output/svn_project/local/Red
+#change local branch
+svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
+#apply changes from different branch
+svn --username Red merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-1 ./output/svn_project/local/Red
+# --- Merging differences between repository URLs into 'output/svn_project/local/Red':
+# U    output/svn_project/local/Red/Lab4.java
+# --- Recording mergeinfo for merge between repository URLs into 'output/svn_project/local/Red':
+#  U   output/svn_project/local/Red
+#ensuring the current status
+svn --username Red status ./output/svn_project/local/Red
+#  M      output/svn_project/local/Red
+# M       output/svn_project/local/Red/Lab4.java
+#save done changes on branch
+svn --username Red commit -m "merge commit" ./output/svn_project/local/Red
 \end{lstlisting}
+

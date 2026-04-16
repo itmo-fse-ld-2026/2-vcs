@@ -13,22 +13,28 @@ tree -dL 1 ./output/git_project
 # 4 directories
 \end{lstlisting}
 
-Для эмуляции нескольких пользователей создаются отдельные директории в \texttt{local}, которые соответствуют пользовательским именам. Чтобы синхронизировать проекты, в директории \texttt{remote} хранится имитация удалённого репозитория, с которым синхронизируются все изменения. 
+Для эмуляции нескольких пользователей создаются отдельные директории в \texttt{local}, которые соответствуют пользовательским именам. Чтобы синхронизировать проекты, в директории \texttt{remote} хранится имитация удалённого репозитория, с которым синхронизируются все изменения. Директория \texttt{diff\_cache} предназначена для хранения zip-архивов, которые даны по варианту для каждой ревизии.
 
-Для создания удалённого репозитория использовались следующие команды:
+Для создания удалённого репозитория использовалось следующее:
 \begin{lstlisting}
 git -C /project/output/git_project/remote init --bare
 \end{lstlisting}
 
 Для создания и конфигурации локальных репозиториев использовались следующие команды:
 \begin{lstlisting}
+#create empty local repository
 git -C ./output/git_project/local/Red init
+#specify user's name and email
 git -C ./output/git_project/local/Red config user.name Red
 git -C ./output/git_project/local/Red config user.email red@yandex.ru
+#specify remote repository address
 git -C ./output/git_project/local/Red remote add origin /project/output/git_project/remote
+#create empty local repository
 git -C ./output/git_project/local/Blue init
+#specify user's name and email
 git -C ./output/git_project/local/Blue config user.name Blue
 git -C ./output/git_project/local/Blue config user.email blue@yandex.ru
+#specify remote repository address
 git -C ./output/git_project/local/Blue remote add origin /project/output/git_project/remote
 \end{lstlisting}
 
@@ -45,9 +51,9 @@ tree -dL 1 ./output/svn_project
 # 4 directories
 \end{lstlisting}
 
-Для эмуляции нескольких пользователей создаются отдельные директории в \texttt{local}, которые соответствуют пользовательским именам. Чтобы синхронизировать проекты, в директории \texttt{remote} хранится имитация удалённого репозитория, с которым синхронизируются все изменения. 
+Для эмуляции нескольких пользователей создаются отдельные директории в \texttt{local}, которые соответствуют пользовательским именам. Чтобы синхронизировать проекты, в директории \texttt{remote} хранится имитация удалённого репозитория, с которым синхронизируются все изменения. Директория \texttt{diff\_cache} предназначена для хранения zip-архивов, которые даны по варианту для каждой ревизии.
 
-Для создания удалённого репозитория использовались следующие команды:
+Для создания удалённого репозитория использовалось следующее:
 \begin{lstlisting}
 svnadmin create /project/output/svn_project/remote
 svn --username Red mkdir file:///project/output/svn_project/remote/trunk -m "create 'trunk' directory"

@@ -36,12 +36,18 @@ class GraphMapper:
     self.diff_dir = os.path.join(self.work_dir, diff_subdir)
   
   def _execute_cmd(self, args: List[str]):
-    return subprocess.run(args, capture_output=True, text=True)
+    return subprocess.run(args, capture_output=True, text=False)
   
   def _sort_commits(self, json_str: str) -> List[CommitMeta]:
     data = json.loads(json_str)
     branches = {b["id"]: b for b in data.values()}
     name_to_id = {b["name"]: b["id"] for b in data.values()}
+
+    merge_targets: Dict[int, int] = {}
+    for b in data.values():
+      if "merge" in b:
+        target_commit = b["merge"]["commit"]
+        merge_targets[target_commit] = b["id"]
     
     processed_commits: Set[int] = set()
     started_branches: Set[int] = set()
@@ -63,10 +69,9 @@ class GraphMapper:
         is_merge = False
         from_br_id = None
         
-        if "merge" in branch and branch["merge"]["commit"] == c_id:
-          m_info = branch["merge"]
-          merge_src_id = name_to_id[m_info["branch"]]
-          process_branch(merge_src_id, m_info["commit"])
+        if c_id in merge_targets:
+          merge_src_id = merge_targets[c_id]
+          process_branch(merge_src_id)
           is_merge = True
           from_br_id = merge_src_id
 
@@ -108,12 +113,12 @@ class GraphMapper:
       if c.branch_id != self.users[c.user_id].branch:
         self.users[c.user_id].branch = c.branch_id
         self.process_branch_switch(c.user_id, c.branch_id)
-      self.process_pre_commit(c.id, c.user_id)
-      prev_commit_id = branch_heads.get(c.branch_id)
-      commit_message = self.get_commit_message(c.id, prev_commit_id)
       if c.is_merge and c.from_branch_id is not None:
-        self.process_merge_commit(c.user_id, c.id, c.from_branch_id, c.branch_id, commit_message)
+        self.process_merge_commit(c.user_id, c.id, c.from_branch_id, c.branch_id, "merge commit")
       else:
+        self.process_pre_commit(c.id, c.user_id)
+        prev_commit_id = branch_heads.get(c.branch_id)
+        commit_message = self.get_commit_message(c.id, prev_commit_id)
         self.process_commit(c.user_id, c.id, commit_message)
       branch_heads[c.branch_id] = c.id
       self.process_push(c.user_id, c.branch_id)
@@ -142,29 +147,21 @@ class GraphMapper:
   
   def process_pre_commit(self, commit_id: int, user_id: int):
     user_dir = os.path.join(self.local_dir, self.users[user_id].name)
-    for item in os.listdir(user_dir):
-      if item in self.vcs_protected:
-        continue
-      
-      item_path = os.path.join(user_dir, item)
-      self._execute_cmd(["rm", "-rf", item_path])
-
     success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
     if not success:
       raise RuntimeError(f"Failed to download commit {commit_id}")
 
-    result = self._execute_cmd(["unzip", "-q", file_path, "-d", user_dir])
-
-    if result.returncode != 0:
-      if not os.path.exists(self.local_dir) or not os.listdir(self.local_dir):
-        raise RuntimeError(f"Unzip failed: {result.stderr}")
-
-    self._execute_cmd(["rm", "-f", file_path])
+    contents = os.path.join(file_path, ".")
+    cmd = ["rsync", "-av", "--delete"]
+    for pattern in self.vcs_protected:
+        cmd.extend(["--exclude", pattern])
+    cmd.extend([contents, user_dir])
+    self._execute_cmd(cmd)
   
   def get_commit_message(self, commit_id: int, prev_commit_id: Optional[int]) -> str:
-    new_path = self.client.get_commit_area(commit_id, self.work_dir)
+    new_path = os.path.join(self.diff_dir, str(commit_id))
     if prev_commit_id is not None:
-      old_path = self.client.get_commit_area(prev_commit_id, self.work_dir)
+      old_path = os.path.join(self.diff_dir, str(prev_commit_id))
     else:
       old_path = os.path.join(self.diff_dir, "empty")
     diff_text = self.client.get_diff(old_path, new_path)

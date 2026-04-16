@@ -25,14 +25,14 @@ class ReportFiller:
       
       for name, body in sections:
         self.context[name.strip()] = body.strip()
-      
-      self._render_revision_summary()
     except IOError as e:
       raise RuntimeError(f"Error reading artifact: {e}")
 
   def compile_patterns(self):
     if not os.path.isdir(self.report_dir):
       raise NotADirectoryError(f"Invalid report directory: {self.report_dir}")
+    
+    self._render_revision_summary()
 
     self.env.loader = FileSystemLoader(self.report_dir)
 
@@ -74,7 +74,9 @@ class ReportFiller:
     for rev_num in all_revisions:
       render_data: Dict[str, object] = {
         'revision_num': str(rev_num),
-        'data': self.context
+        'data': self.context,
+        'has_conflicts_git': f'revision_{rev_num}_conflict_git' in self.context.keys(),
+        'has_conflicts_svn': f'revision_{rev_num}_conflict_svn' in self.context.keys(),
       }
       summaries.append(revision_template.render(render_data))
     
