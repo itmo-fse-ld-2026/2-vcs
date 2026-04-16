@@ -54,7 +54,13 @@ class IFMOPortalClient:
       with open(filename, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
           f.write(chunk)
-      return True, filename, response.status_code
+      extract_dir = os.path.join(download_dir, str(commit))
+      os.makedirs(extract_dir, exist_ok=True)
+      result = subprocess.run(["unzip", "-qo", filename, "-d", extract_dir], check=True)
+      if result.returncode != 0:
+        raise RuntimeError(f"Unzip failed: {result.stderr}")
+      subprocess.run(["rm", "-f", filename], check=True)
+      return True, extract_dir, response.status_code
     return False, response.text[:500], response.status_code
 
   def get_branches(self):
@@ -75,29 +81,6 @@ class IFMOPortalClient:
     if os.path.exists(base_path):
       subprocess.run(["rm", "-rf", base_path], check=True)
       os.makedirs(base_path)
-  
-  def get_commit_area(self, commit: int) -> str:
-    target_dir = os.path.join(self._cache_dir, str(commit))
-    if os.path.exists(target_dir):
-      return target_dir
-
-    success, file_path, _ = self.download_archive(commit, self._cache_dir)
-    if not success:
-      raise RuntimeError(f"Failed to download commit {commit}")
-
-    os.makedirs(target_dir, exist_ok=True)
-    result = subprocess.run(
-      ["unzip", "-q", file_path, "-d", target_dir],
-      capture_output=True,
-      text=True
-    )
-
-    if result.returncode != 0:
-      if not os.path.exists(target_dir) or not os.listdir(target_dir):
-        raise RuntimeError(f"Unzip failed: {result.stderr}")
-    
-    os.remove(file_path)
-    return target_dir
 
   def get_diff(self, old_dir: str, new_dir: str) -> str:
     result = subprocess.run(

@@ -151,18 +151,13 @@ class GraphMapper:
     if not success:
       raise RuntimeError(f"Failed to download commit {commit_id}")
 
-    result = self._execute_cmd(["unzip", "-qo", file_path, "-d", user_dir])
-
-    if result.returncode != 0:
-      if not os.path.exists(self.local_dir) or not os.listdir(self.local_dir):
-        raise RuntimeError(f"Unzip failed: {result.stderr}")
-
-    self._execute_cmd(["rm", "-f", file_path])
+    contents = os.path.join(file_path, ".")
+    self._execute_cmd(["cp", "-rf", contents, user_dir])
   
   def get_commit_message(self, commit_id: int, prev_commit_id: Optional[int]) -> str:
-    new_path = self.client.get_commit_area(commit_id)
+    new_path = os.path.join(self.diff_dir, str(commit_id))
     if prev_commit_id is not None:
-      old_path = self.client.get_commit_area(prev_commit_id)
+      old_path = os.path.join(self.diff_dir, str(prev_commit_id))
     else:
       old_path = os.path.join(self.diff_dir, "empty")
     diff_text = self.client.get_diff(old_path, new_path)

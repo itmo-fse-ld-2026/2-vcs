@@ -20,8 +20,9 @@ class SVNGraphMapper(GraphMapper):
     self.logger = logger
     self.remote_url = f"file://{self.remote_dir}"
   
-  def _execute_cmd(self, args: List[str], output: bool=False):
-    self.logger.log(" ".join(args))
+  def _execute_cmd(self, args: List[str], output: bool=False, log: bool = True):
+    if log:
+      self.logger.log(" ".join(args))
     result = super()._execute_cmd(args)
     if output and result.stdout:
       for line in result.stdout.splitlines():
@@ -95,14 +96,70 @@ class SVNGraphMapper(GraphMapper):
     _, status_output = self._svn(user_id, ["status", user_path], output=True)
     has_conflict = any(line.startswith('C') or 'conflict' in line.lower() for line in status_output.splitlines())
     if error != 0 or has_conflict:
+      self._log_merge_conflicts(user_id, status_output)
       self.logger.log("#having problems with merging, trying to solve them...")
-      self.process_pre_commit(commit_id, user_id)
+      user_dir = os.path.join(self.local_dir, self.users[user_id].name)
+      success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
+      if not success:
+        raise RuntimeError(f"Failed to download commit {commit_id}")
+      self._log_resolved_conflicts(user_id, file_path)
+      contents = os.path.join(file_path, ".")
+      self._execute_cmd(["cp", "-rf", contents, user_dir])
       self.logger.log("#mark conflicts as resolved")
       self._svn(user_id, ["resolve", "--accept", "working", "-R", user_path])
-      self.logger.log("#schedule addition of files if there are new ones")
-      self._svn(user_id, ["add", "--force", user_path])
     self.logger.log("#save done changes on branch")
     self._svn(user_id, ["commit", "-m", f'"{msg}"', user_path])
+  
+  def _get_conflicted_files(self, status_output: str) -> List[str]:
+    conflicted_files: List[str] = []
+    for line in status_output.splitlines():
+      if line.startswith('C'):
+        parts = line.split()
+        if parts:
+          conflicted_files.append(parts[-1])
+    return conflicted_files
+  
+  def _log_merge_conflicts(self, user_id: int, status_output: str):
+    self.logger.mark_conflict_revision()
+    conflicting_files = self._get_conflicted_files(status_output)
+    for file in conflicting_files:
+      if file:
+        self.logger.err(f"#viewing conflicts of {file}")
+        file_content = self._execute_cmd(["cat", file], log=False)
+        if file_content.stdout:
+          lines = file_content.stdout.split('\n')
+          in_conflict = False
+          conflict_block = []
+          for i, line in enumerate(lines, 1):
+            if line.startswith('<<<<<<<'):
+              in_conflict = True
+              conflict_block = [f"Line {i}: {line}"]
+            elif line.startswith('=======') and in_conflict:
+              conflict_block.append(f"Line {i}: {line}")
+            elif line.startswith('>>>>>>>') and in_conflict:
+              conflict_block.append(f"Line {i}: {line}")
+              for conflict_line in conflict_block:
+                self.logger.err(conflict_line)
+              in_conflict = False
+              conflict_block = []
+            elif in_conflict:
+              conflict_block.append(f"Line {i}: {line}")
+  
+  def _log_resolved_conflicts(self, user_id: int, archive_path: str):
+    self.logger.mark_conflict_resolved()
+    user_dir = os.path.join(self.local_dir, self.users[user_id].name)
+    result = self._execute_cmd(
+      ["diff", "-r", "-u", user_dir, archive_path],
+      log=False
+    )
+    if result.stdout:
+      for line in result.stdout.split('\n'):
+        if line.startswith('+') or line.startswith('-') or line.startswith('@@'):
+          if line[0] == '-' and line[:3] != '---':
+            continue
+          self.logger.err(f"{line}")
+    else:
+      self.logger.err("#no differences with goal image are found")
   
   def process_pre_commit(self, commit_id: int, user_id: int):
     self.logger.log("#apply desired changes")

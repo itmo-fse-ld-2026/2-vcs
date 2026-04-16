@@ -19,8 +19,9 @@ class GitGraphMapper(GraphMapper):
     super().__init__(client, asker, users, ['.git'], work_dir, remote_subdir, local_subdir, diff_subdir)
     self.logger = logger
   
-  def _execute_cmd(self, args: List[str], output: bool=False):
-    self.logger.log(" ".join(args))
+  def _execute_cmd(self, args: List[str], output: bool=False, log: bool=True):
+    if log:
+      self.logger.log(" ".join(args))
     result = super()._execute_cmd(args)
     if output and result.stdout:
       for line in result.stdout.splitlines():
@@ -32,7 +33,7 @@ class GitGraphMapper(GraphMapper):
 
   def _git(self, user_id: int, args: List[str], show_error: bool=True, output: bool=False) -> tuple[int, str]:
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
-    result = self._execute_cmd(["git", "-C", user_path, *args], output)
+    result = self._execute_cmd(["git", "-C", user_path, *args], output=output)
     if result.returncode != 0 and show_error:
       raise RuntimeError(f"Git Error: stderr: {result.stderr} | stdout: {result.stdout}")
     return (result.returncode, result.stdout)
@@ -96,9 +97,63 @@ class GitGraphMapper(GraphMapper):
     self.logger.log("#apply changes from branch into single commit, preserving remote branch")
     error, _ = self._git(user_id, ["merge", source_branch, "--no-ff", "-m", f"\"{msg}\""], output=True, show_error=False)
     if error != 0:
+      self._log_merge_conflicts(user_id)
       self.logger.log("#having problems with merging, trying to solve them...")
-      self.process_pre_commit(commit_id, user_id)
+      user_dir = os.path.join(self.local_dir, self.users[user_id].name)
+      success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
+      if not success:
+        raise RuntimeError(f"Failed to download commit {commit_id}")
+      self._log_resolved_conflicts(user_id, file_path)
+
+      contents = os.path.join(file_path, ".")
+      self._execute_cmd(["cp", "-rf", contents, user_dir])
       self.process_commit(user_id, commit_id, msg)
+  
+  def _log_merge_conflicts(self, user_id: int):
+    _, result = self._git(user_id, ["diff", "--name-only", "--diff-filter=U"], output=True)
+    conflicting_files = result.strip().split('\n')
+    self.logger.mark_conflict_revision()
+    for file in conflicting_files:
+      if file:
+        abs_file = os.path.join(self.local_dir, self.users[user_id].name, file)
+        self.logger.err(f"#viewing conflicts of {abs_file}")
+        
+        file_content = self._execute_cmd(["cat", abs_file], log=False)
+        if file_content.stdout:
+          lines = file_content.stdout.split('\n')
+          in_conflict = False
+          conflict_block = []
+          
+          for i, line in enumerate(lines, 1):
+            if line.startswith('<<<<<<<'):
+              in_conflict = True
+              conflict_block = [f"Line {i}: {line}"]
+            elif line.startswith('=======') and in_conflict:
+              conflict_block.append(f"Line {i}: {line}")
+            elif line.startswith('>>>>>>>') and in_conflict:
+              conflict_block.append(f"Line {i}: {line}")
+              for conflict_line in conflict_block:
+                self.logger.err(conflict_line)
+              in_conflict = False
+              conflict_block = []
+            elif in_conflict:
+              conflict_block.append(f"Line {i}: {line}")
+  
+  def _log_resolved_conflicts(self, user_id: int, archive_path: str):
+    self.logger.mark_conflict_resolved()
+    user_dir = os.path.join(self.local_dir, self.users[user_id].name)
+    result = self._execute_cmd(
+      ["diff", "-r", "-u", user_dir, archive_path],
+      log=False
+    )
+    if result.stdout:
+      for line in result.stdout.split('\n'):
+        if line.startswith('+') or line.startswith('-') or line.startswith('@@'):
+          if line[0] == '-' and line[:3] != '---':
+            continue
+          self.logger.err(f"{line}")
+    else:
+      self.logger.err("#no differences with goal image are found")
   
   def process_pre_commit(self, commit_id: int, user_id: int):
     self.logger.log("#apply desired changes")
