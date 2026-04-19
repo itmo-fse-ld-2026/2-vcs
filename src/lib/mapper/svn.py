@@ -89,6 +89,32 @@ class SVNGraphMapper(GraphMapper):
     self._svn(user_id, ["propset", "dummy-prop", f"r{commit_id}", user_path])
     self.logger.log("#save done changes on branch")
     self._svn(user_id, ["commit", "-m", f"\"{msg}\"", user_path])
+  
+  def _sync_changes(self, user_id: int, download_file: str, question_files: List[str]):
+    self.logger.log("#sync changes with zip image")
+    user_path = os.path.join(self.local_dir, self.users[user_id].name)
+    user_dir = os.path.join(self.local_dir, self.users[user_id].name)
+    for root, dirs, files in os.walk(user_path, topdown=True):
+      if '.svn' in dirs:
+        dirs.remove('.svn')
+      
+      for name in files + dirs:
+        full_local_path = os.path.join(root, name)
+        rel_path = os.path.relpath(full_local_path, user_path)
+        archive_item_path = os.path.join(download_file, rel_path)
+        
+        is_protected = any(pattern in rel_path for pattern in self.vcs_protected)
+        is_protected |= any(pattern in full_local_path for pattern in question_files)
+        
+        if not os.path.exists(archive_item_path) and not is_protected:
+          self._svn(user_id, ["rm", "--force", full_local_path])
+
+    contents = os.path.join(download_file, ".")
+    cmd = ["rsync", "-av", "--checksum"]
+    for pattern in self.vcs_protected:
+        cmd.extend(["--exclude", pattern])
+    cmd.extend([contents, user_dir])
+    self._execute_cmd(cmd, output=True)
 
   def process_merge_commit(self, user_id: int, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
@@ -101,42 +127,22 @@ class SVNGraphMapper(GraphMapper):
     lines = status_text.splitlines()
     has_conflict = any('C' in line[:7] for line in lines)
     question_files = [line.split(None, 1)[1] for line in lines if line.startswith('?')]
+    success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
+    if not success:
+      raise RuntimeError(f"Failed to download commit {commit_id}")
     if error != 0 or has_conflict:
       self._log_merge_conflicts(user_id, status_output.decode('utf-8', errors='replace'))
       self.logger.log("#having problems with merging, trying to solve them...")
       self.logger.log("#update dummy metadata to fix artificial merge conflicts, if any")
       self._svn(user_id, ["propset", "dummy-prop", f"r{commit_id}", user_path])
-      user_dir = os.path.join(self.local_dir, self.users[user_id].name)
-      success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
-      if not success:
-        raise RuntimeError(f"Failed to download commit {commit_id}")
       self._log_resolved_conflicts(user_id, file_path)
-
-      for root, dirs, files in os.walk(user_path, topdown=True):
-        if '.svn' in dirs:
-          dirs.remove('.svn')
-        
-        for name in files + dirs:
-          full_local_path = os.path.join(root, name)
-          rel_path = os.path.relpath(full_local_path, user_path)
-          archive_item_path = os.path.join(file_path, rel_path)
-          
-          is_protected = any(pattern in rel_path for pattern in self.vcs_protected)
-          is_protected |= any(pattern in full_local_path for pattern in question_files)
-          
-          if not os.path.exists(archive_item_path) and not is_protected:
-            self._svn(user_id, ["rm", "--force", full_local_path])
-
-      contents = os.path.join(file_path, ".")
-      cmd = ["rsync", "-av", "--checksum"]
-      for pattern in self.vcs_protected:
-          cmd.extend(["--exclude", pattern])
-      cmd.extend([contents, user_dir])
-      self._execute_cmd(cmd, output=True)
+      self._sync_changes(user_id, file_path, question_files)
       self.logger.log("#mark conflicts as resolved")
       self._svn(user_id, ["resolve", "--accept", "working", "-R", user_path])
-      self.logger.log("#sync current state of files for committing (if during merge we decided to remove files)")
-      self._svn(user_id, ["add", "--force", user_path])
+    else:
+      self._sync_changes(user_id, file_path, question_files)
+    self.logger.log("#sync current state of files for committing (if during merge we decided to remove files)")
+    self._svn(user_id, ["add", "--force", user_path])
     self.logger.log("#save done changes on branch")
     self._svn(user_id, ["commit", "-m", f'"{msg}"', user_path])
   
