@@ -12,7 +12,9 @@ RUN apt-get update && \
   rsync \
   unzip \
   curl \
-  tree && \
+  tree \
+  libsvn-perl \
+  graphviz && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 

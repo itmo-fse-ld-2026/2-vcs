@@ -1,8 +1,12 @@
-from typing import Dict, List, Any, Protocol
+from typing import Dict, List, Protocol
 import json
+import subprocess
 
 class Plotter(Protocol):
-  def generate_script(self, branches: Dict[str, Any]) -> str:
+  def generate_block_schema(self, raw_branches: str) -> str:
+    ...
+  
+  def generate_pdf_graph(self, dot_content: str) -> bytes:
     ...
 
 class DefaultPlotter:
@@ -17,7 +21,7 @@ class DefaultPlotter:
     self.offset_by_x = offset_by_x
     self.offset_by_y = -offset_by_y
 
-  def generate_script(self, raw_branches: str) -> str:
+  def generate_block_schema(self, raw_branches: str) -> str:
     tikz_lines: List[str] = [
       "\\begin{tikzpicture}",
       "  [every node/.style={font=\\scriptsize}]"
@@ -59,3 +63,17 @@ class DefaultPlotter:
 
     tikz_lines.append("\\end{tikzpicture}")
     return "\n".join(tikz_lines)
+
+  def generate_pdf_graph(self, dot_content: str) -> bytes:
+    try:
+      result = subprocess.run(
+        ["dot", "-Tpdf"],
+        input=dot_content.encode('utf-8'),
+        capture_output=True,
+        check=True
+      )
+      return result.stdout
+    except subprocess.CalledProcessError as e:
+      raise RuntimeError(f"Graphviz failed: {e.stderr}")
+    except FileNotFoundError:
+      raise RuntimeError("Graphviz 'dot' executable not found in PATH.")

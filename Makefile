@@ -14,5 +14,5 @@ clean:
 	rm -rf $$(grep "output_dir:" ${config_name} | cut -d '"' -f 2)
 pdf:
 	cd "${report_dir}"; \
-	xelatex -interaction=nonstopmode "${report_name}"; \
-	xelatex -interaction=nonstopmode "${report_name}"
+	xelatex --shell-escape -interaction=nonstopmode "${report_name}"; \
+	xelatex --shell-escape -interaction=nonstopmode "${report_name}"

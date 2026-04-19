@@ -85,6 +85,8 @@ class SVNGraphMapper(GraphMapper):
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
     self.logger.log("#schedule addition of files if there are new ones")
     self._svn(user_id, ["add", "--force", user_path])
+    self.logger.log("#svn has no property --allow-empty like git, so make it always have changes in metadata")
+    self._svn(user_id, ["propset", "dummy-prop", f"r{commit_id}", user_path])
     self.logger.log("#save done changes on branch")
     self._svn(user_id, ["commit", "-m", f"\"{msg}\"", user_path])
 
@@ -122,7 +124,7 @@ class SVNGraphMapper(GraphMapper):
             self._svn(user_id, ["rm", "--force", full_local_path])
 
       contents = os.path.join(file_path, ".")
-      cmd = ["rsync", "-av"]
+      cmd = ["rsync", "-av", "--checksum"]
       for pattern in self.vcs_protected:
           cmd.extend(["--exclude", pattern])
       cmd.extend([contents, user_dir])

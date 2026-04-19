@@ -1,0 +1,25 @@
+\section{Топология репозиториев}
+
+В результате выполнения вышеперечисленных команд получились следующие топологии связей в репозиториях. Они оформлены в виде графов при помощи следующих инструментов:
+\begin{itemize}
+  \item \texttt{svn-graph.pl} --- официальный Perl-скрипт для формирования графов в формате \texttt{Graphviz};
+  \item \texttt{git-graph.sh} --- самописный Bash-скрипт для формирования графов в формате \texttt{Graphviz}.
+\end{itemize}
+
+\vspace*{\fill}
+\begin{figure}[H]
+  \centering
+  \begin{adjustbox}{max width=\textwidth, max height=0.6\textheight, keepaspectratio}
+    \includegraphics{tikz/svn_graph.pdf}
+  \end{adjustbox}
+  \caption{История удалённого репозитория \texttt{Subversion}}
+\end{figure}
+\vspace*{\fill}
+
+\begin{figure}
+  \centering
+  \begin{adjustbox}{max width=0.7\textwidth, max height=0.95\textheight, keepaspectratio}
+    \includegraphics{tikz/git_graph.pdf}
+  \end{adjustbox}
+  \caption{История удалённого репозитория \texttt{Git}}
+\end{figure}

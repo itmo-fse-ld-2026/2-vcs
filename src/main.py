@@ -57,18 +57,38 @@ if __name__ == "__main__":
   report_dir: str = cfg['report_dir']
   vcs_plot: str = os.path.join(report_dir, cfg['vcs_plot'])
   success, result, status = portal_client.get_branches()
-  if success:
-    vcs_plot_data = plotter.generate_script(result)
-    with open(vcs_plot, 'w') as f:
-      f.write(vcs_plot_data)
-
-    git_mapper.map_json_to_graph(result)
-    svn_mapper.map_json_to_graph(result)
-
-    reporter.parse_artifact(git_log)
-    reporter.parse_artifact(svn_log)
-    reporter.parse_artifact(git_err)
-    reporter.parse_artifact(svn_err)
-    reporter.compile_patterns()
-  else:
+  if not success:
     print(f"Error: {status} - {result}")
+    exit(status)
+  vcs_plot_data = plotter.generate_block_schema(result)
+  with open(vcs_plot, 'w') as f:
+    f.write(vcs_plot_data)
+
+  git_mapper.map_json_to_graph(result)
+  svn_mapper.map_json_to_graph(result)
+
+  dot_result = subprocess.run(["perl", "svn-graph.pl", f"file://{os.path.join(os.path.abspath(svn_dir), 'remote')}"],
+                              capture_output=True,
+                              text=True)
+  if dot_result.returncode != 0:
+    raise RuntimeError(f"Perl script failed with exit code {dot_result.returncode}")
+  
+  with open(os.path.join(report_dir, "tikz", "svn_graph.pdf"), "wb") as f:
+    svg_result = plotter.generate_pdf_graph(dot_result.stdout)
+    f.write(svg_result)
+  
+  dot_result = subprocess.run(["bash", "git-graph.sh", f"{os.path.join(git_dir, 'local', git_users[0].name)}"],
+                              capture_output=True,
+                              text=True)
+  if dot_result.returncode != 0:
+    raise RuntimeError(f"Bash script failed with exit code {dot_result.returncode} {dot_result.stderr} | {dot_result.stdout}")
+  
+  with open(os.path.join(report_dir, "tikz", "git_graph.pdf"), "wb") as f:
+    svg_result = plotter.generate_pdf_graph(dot_result.stdout)
+    f.write(svg_result)
+
+  reporter.parse_artifact(git_log)
+  reporter.parse_artifact(svn_log)
+  reporter.parse_artifact(git_err)
+  reporter.parse_artifact(svn_err)
+  reporter.compile_patterns()

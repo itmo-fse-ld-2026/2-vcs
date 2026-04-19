@@ -108,7 +108,7 @@ class GitGraphMapper(GraphMapper):
       self._log_resolved_conflicts(user_id, file_path)
 
       contents = os.path.join(file_path, ".")
-      cmd = ["rsync", "-av", "--delete"]
+      cmd = ["rsync", "-av", "--delete", "--checksum"]
       for pattern in self.vcs_protected:
           cmd.extend(["--exclude", pattern])
       cmd.extend([contents, user_dir])
