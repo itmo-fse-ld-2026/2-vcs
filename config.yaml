@@ -1,4 +1,4 @@
-variant: 1
+variant: 700777
 ask_commit_messages: false
 base_url: "https://se.ifmo.ru/courses/software-engineering-basics"
 report_dir: "./report"

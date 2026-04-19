@@ -23,7 +23,6 @@ RUN \
     etoolbox \
     float \
     pgf \
-    svg \
     listings \
     adjustbox \
     transparent \

@@ -97,11 +97,15 @@ class SVNGraphMapper(GraphMapper):
     error, _ = self._svn(user_id, ["merge", "--non-interactive", "--accept", "postpone", source_url, user_path], output=True, show_error=False)
     self.logger.log("#ensuring the current status")
     _, status_output = self._svn(user_id, ["status", user_path], output=True)
-    has_conflict = any(line.decode('utf-8', errors='replace').startswith('C') for line in status_output.splitlines())
-    question_files = [line.decode('utf-8', errors='replace').split(None, 1)[1] for line in status_output.splitlines() if line.decode('utf-8', errors='replace').startswith('?')]
+    status_text = status_output.decode('utf-8', errors='replace')
+    lines = status_text.splitlines()
+    has_conflict = any('C' in line[:7] for line in lines)
+    question_files = [line.split(None, 1)[1] for line in lines if line.startswith('?')]
     if error != 0 or has_conflict:
       self._log_merge_conflicts(user_id, status_output.decode('utf-8', errors='replace'))
       self.logger.log("#having problems with merging, trying to solve them...")
+      self.logger.log("#update dummy metadata to fix artificial merge conflicts, if any")
+      self._svn(user_id, ["propset", "dummy-prop", f"r{commit_id}", user_path])
       user_dir = os.path.join(self.local_dir, self.users[user_id].name)
       success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
       if not success:
@@ -145,8 +149,29 @@ class SVNGraphMapper(GraphMapper):
           conflicted_files.append(parts[-1])
     return conflicted_files
   
+  def _get_metadata_conflict(self, status_output: str) -> List[str]:
+    conflicting_meta: List[str] = []
+    lines = status_output.splitlines()
+    for line in lines:
+      if len(line) > 1 and line[1] == 'C':
+        path = line[7:].strip()
+        prej_file = os.path.join(path, "dir_conflicts.prej")
+        if os.path.exists(prej_file):
+          try:
+            with open(prej_file, 'r') as f:
+              conflicting_meta.append(f.read())
+          except Exception:
+            pass
+    return conflicting_meta
+  
   def _log_merge_conflicts(self, user_id: int, status_output: str):
     self.logger.mark_conflict_revision()
+    conflicting_metadata = self._get_metadata_conflict(status_output)
+    if len(conflicting_metadata) > 0:
+      self.logger.err(f"#viewing metadata conflicts")
+      for meta in conflicting_metadata:
+        if meta:
+          self.logger.err(meta)
     conflicting_files = self._get_conflicted_files(status_output)
     for file in conflicting_files:
       if file:
