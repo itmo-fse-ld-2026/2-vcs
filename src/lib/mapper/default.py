@@ -114,7 +114,7 @@ class GraphMapper:
         self.users[c.user_id].branch = c.branch_id
         self.process_branch_switch(c.user_id, c.branch_id)
       if c.is_merge and c.from_branch_id is not None:
-        self.process_merge_commit(c.user_id, c.id, c.from_branch_id, c.branch_id, "merge commit")
+        self.process_merge_commit(c.user_id, c.id, c.from_branch_id, c.branch_id, f"r{c.id}: merge commit")
       else:
         self.process_pre_commit(c.id, c.user_id)
         prev_commit_id = branch_heads.get(c.branch_id)
@@ -152,7 +152,7 @@ class GraphMapper:
       raise RuntimeError(f"Failed to download commit {commit_id}")
 
     contents = os.path.join(file_path, ".")
-    cmd = ["rsync", "-av", "--delete"]
+    cmd = ["rsync", "-av", "--delete", "--checksum"]
     for pattern in self.vcs_protected:
         cmd.extend(["--exclude", pattern])
     cmd.extend([contents, user_dir])

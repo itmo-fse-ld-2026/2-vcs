@@ -85,8 +85,36 @@ class SVNGraphMapper(GraphMapper):
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
     self.logger.log("#schedule addition of files if there are new ones")
     self._svn(user_id, ["add", "--force", user_path])
+    self.logger.log("#svn has no property --allow-empty like git, so make it always have changes in metadata")
+    self._svn(user_id, ["propset", "dummy-prop", f"r{commit_id}", user_path])
     self.logger.log("#save done changes on branch")
     self._svn(user_id, ["commit", "-m", f"\"{msg}\"", user_path])
+  
+  def _sync_changes(self, user_id: int, download_file: str, question_files: List[str]):
+    self.logger.log("#sync changes with zip image")
+    user_path = os.path.join(self.local_dir, self.users[user_id].name)
+    user_dir = os.path.join(self.local_dir, self.users[user_id].name)
+    for root, dirs, files in os.walk(user_path, topdown=True):
+      if '.svn' in dirs:
+        dirs.remove('.svn')
+      
+      for name in files + dirs:
+        full_local_path = os.path.join(root, name)
+        rel_path = os.path.relpath(full_local_path, user_path)
+        archive_item_path = os.path.join(download_file, rel_path)
+        
+        is_protected = any(pattern in rel_path for pattern in self.vcs_protected)
+        is_protected |= any(pattern in full_local_path for pattern in question_files)
+        
+        if not os.path.exists(archive_item_path) and not is_protected:
+          self._svn(user_id, ["rm", "--force", full_local_path])
+
+    contents = os.path.join(download_file, ".")
+    cmd = ["rsync", "-av", "--checksum"]
+    for pattern in self.vcs_protected:
+        cmd.extend(["--exclude", pattern])
+    cmd.extend([contents, user_dir])
+    self._execute_cmd(cmd, output=True)
 
   def process_merge_commit(self, user_id: int, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     user_path = os.path.join(self.local_dir, self.users[user_id].name)
@@ -95,42 +123,26 @@ class SVNGraphMapper(GraphMapper):
     error, _ = self._svn(user_id, ["merge", "--non-interactive", "--accept", "postpone", source_url, user_path], output=True, show_error=False)
     self.logger.log("#ensuring the current status")
     _, status_output = self._svn(user_id, ["status", user_path], output=True)
-    has_conflict = any(line.decode('utf-8', errors='replace').startswith('C') for line in status_output.splitlines())
-    question_files = [line.decode('utf-8', errors='replace').split(None, 1)[1] for line in status_output.splitlines() if line.decode('utf-8', errors='replace').startswith('?')]
+    status_text = status_output.decode('utf-8', errors='replace')
+    lines = status_text.splitlines()
+    has_conflict = any('C' in line[:7] for line in lines)
+    question_files = [line.split(None, 1)[1] for line in lines if line.startswith('?')]
+    success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
+    if not success:
+      raise RuntimeError(f"Failed to download commit {commit_id}")
     if error != 0 or has_conflict:
       self._log_merge_conflicts(user_id, status_output.decode('utf-8', errors='replace'))
       self.logger.log("#having problems with merging, trying to solve them...")
-      user_dir = os.path.join(self.local_dir, self.users[user_id].name)
-      success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
-      if not success:
-        raise RuntimeError(f"Failed to download commit {commit_id}")
+      self.logger.log("#update dummy metadata to fix artificial merge conflicts, if any")
+      self._svn(user_id, ["propset", "dummy-prop", f"r{commit_id}", user_path])
       self._log_resolved_conflicts(user_id, file_path)
-
-      for root, dirs, files in os.walk(user_path, topdown=True):
-        if '.svn' in dirs:
-          dirs.remove('.svn')
-        
-        for name in files + dirs:
-          full_local_path = os.path.join(root, name)
-          rel_path = os.path.relpath(full_local_path, user_path)
-          archive_item_path = os.path.join(file_path, rel_path)
-          
-          is_protected = any(pattern in rel_path for pattern in self.vcs_protected)
-          is_protected |= any(pattern in full_local_path for pattern in question_files)
-          
-          if not os.path.exists(archive_item_path) and not is_protected:
-            self._svn(user_id, ["rm", "--force", full_local_path])
-
-      contents = os.path.join(file_path, ".")
-      cmd = ["rsync", "-av"]
-      for pattern in self.vcs_protected:
-          cmd.extend(["--exclude", pattern])
-      cmd.extend([contents, user_dir])
-      self._execute_cmd(cmd, output=True)
+      self._sync_changes(user_id, file_path, question_files)
       self.logger.log("#mark conflicts as resolved")
       self._svn(user_id, ["resolve", "--accept", "working", "-R", user_path])
-      self.logger.log("#sync current state of files for committing (if during merge we decided to remove files)")
-      self._svn(user_id, ["add", "--force", user_path])
+    else:
+      self._sync_changes(user_id, file_path, question_files)
+    self.logger.log("#sync current state of files for committing (if during merge we decided to remove files)")
+    self._svn(user_id, ["add", "--force", user_path])
     self.logger.log("#save done changes on branch")
     self._svn(user_id, ["commit", "-m", f'"{msg}"', user_path])
   
@@ -143,8 +155,29 @@ class SVNGraphMapper(GraphMapper):
           conflicted_files.append(parts[-1])
     return conflicted_files
   
+  def _get_metadata_conflict(self, status_output: str) -> List[str]:
+    conflicting_meta: List[str] = []
+    lines = status_output.splitlines()
+    for line in lines:
+      if len(line) > 1 and line[1] == 'C':
+        path = line[7:].strip()
+        prej_file = os.path.join(path, "dir_conflicts.prej")
+        if os.path.exists(prej_file):
+          try:
+            with open(prej_file, 'r') as f:
+              conflicting_meta.append(f.read())
+          except Exception:
+            pass
+    return conflicting_meta
+  
   def _log_merge_conflicts(self, user_id: int, status_output: str):
     self.logger.mark_conflict_revision()
+    conflicting_metadata = self._get_metadata_conflict(status_output)
+    if len(conflicting_metadata) > 0:
+      self.logger.err(f"#viewing metadata conflicts")
+      for meta in conflicting_metadata:
+        if meta:
+          self.logger.err(meta)
     conflicting_files = self._get_conflicted_files(status_output)
     for file in conflicting_files:
       if file:

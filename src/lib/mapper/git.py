@@ -91,29 +91,32 @@ class GitGraphMapper(GraphMapper):
     self._git(user_id, ["add", "-A"])
     self.logger.log("#save scheduled changes in the revision (even if nothing is changed)")
     self._git(user_id, ["commit", "--allow-empty", "-m", f"\"{msg}\""])
+  
+  def _sync_changes(self, user_id:int, download_file: str):
+    self.logger.log("#sync changes with zip image")
+    user_dir = os.path.join(self.local_dir, self.users[user_id].name)
+    contents = os.path.join(download_file, ".")
+    cmd = ["rsync", "-av", "--delete", "--checksum"]
+    for pattern in self.vcs_protected:
+        cmd.extend(["--exclude", pattern])
+    cmd.extend([contents, user_dir])
+    self._execute_cmd(cmd, output=True)
 
   def process_merge_commit(self, user_id: int, commit_id: int, from_branch_id: int, to_branch_id: int, msg: str):
     source_branch = f"br-{from_branch_id}"
     self.logger.log("#sync state of the desired branch with the remote repository")
     self._git(user_id, ["branch", "-f", source_branch, f"origin/{source_branch}"])
+    success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
+    if not success:
+      raise RuntimeError(f"Failed to download commit {commit_id}")
     self.logger.log("#apply changes from branch into single commit, preserving remote branch")
-    error, _ = self._git(user_id, ["merge", source_branch, "--no-ff", "-m", f"\"{msg}\""], output=True, show_error=False)
+    error, _ = self._git(user_id, ["merge", source_branch, "--no-ff", "--no-commit"], output=True, show_error=False)
     if error != 0:
       self._log_merge_conflicts(user_id)
       self.logger.log("#having problems with merging, trying to solve them...")
-      user_dir = os.path.join(self.local_dir, self.users[user_id].name)
-      success, file_path, _ = self.client.download_archive(commit_id, self.diff_dir)
-      if not success:
-        raise RuntimeError(f"Failed to download commit {commit_id}")
       self._log_resolved_conflicts(user_id, file_path)
-
-      contents = os.path.join(file_path, ".")
-      cmd = ["rsync", "-av", "--delete"]
-      for pattern in self.vcs_protected:
-          cmd.extend(["--exclude", pattern])
-      cmd.extend([contents, user_dir])
-      self._execute_cmd(cmd, output=True)
-      self.process_commit(user_id, commit_id, msg)
+    self._sync_changes(user_id, file_path)
+    self.process_commit(user_id, commit_id, msg)
   
   def _log_merge_conflicts(self, user_id: int):
     _, result = self._git(user_id, ["diff", "--name-only", "--diff-filter=U"], output=True)
