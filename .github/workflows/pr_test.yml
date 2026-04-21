@@ -19,7 +19,7 @@ jobs:
       - name: Check for changes since the last push in WATCH_LIST
         id: filter
         run: |
-          if git diff --quiet ${{ github.event.before }} ${{ github.event.after }} -- $WATCH_LIST; then
+          if git diff --quiet ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- $WATCH_LIST; then
             echo "docker=false" >> $GITHUB_OUTPUT
             echo "No changes detected in: $WATCH_LIST"
           else
