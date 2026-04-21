@@ -33,8 +33,8 @@ jobs:
         run: |
           IMAGE_PDF=$(cat IMAGE_PDF)
           IMAGE_DEV=$(cat IMAGE_DEV)
-          echo "full_image_pdf=ghcr.io/${OWNER,,}/${IMAGE_PDF}:dev" >> $GITHUB_OUTPUT
-          echo "full_image_dev=ghcr.io/${OWNER,,}/${IMAGE_DEV}:dev" >> $GITHUB_OUTPUT
+          echo "full_image_pdf=ghcr.io/${OWNER,,}/${IMAGE_PDF}:latest" >> $GITHUB_OUTPUT
+          echo "full_image_dev=ghcr.io/${OWNER,,}/${IMAGE_DEV}:latest" >> $GITHUB_OUTPUT
         env:
           OWNER: '${{ github.repository_owner }}'
 
