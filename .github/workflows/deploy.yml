@@ -89,12 +89,25 @@ jobs:
         run: |
           make clean
           make generate
+      
+      - name: Parse excluding paths for upload
+        id: parse_paths
+        run: |
+          GIT_DIR=$(yq '.output_dir + "/" + .git_dir' config.yaml)
+          SVN_DIR=$(yq '.output_dir + "/" + .svn_dir' config.yaml)
+          {
+            echo "excludes<<EOF"
+            echo "."
+            echo "!$GIT_DIR/**"
+            echo "!$SVN_DIR/**"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Upload intermediate data
         uses: actions/upload-artifact@v4
         with:
           name: generated-report-data
-          path: .
+          path: ${{ steps.parse_paths.outputs.excludes }}
 
   build_pdf:
     needs: [docker_changes, generate_data]
