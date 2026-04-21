@@ -101,15 +101,22 @@ jobs:
       - name: Parse excluding paths for upload
         id: parse_paths
         run: |
-          GIT_DIR=$(yq '.output_dir + "/" + .git_dir' config.yaml)
-          SVN_DIR=$(yq '.output_dir + "/" + .svn_dir' config.yaml)
-          {
-            echo "excludes<<EOF"
-            echo "."
-            echo "!$GIT_DIR/**"
-            echo "!$SVN_DIR/**"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          python3 -c "
+          import yaml
+          with open('config.yaml', 'r') as f:
+              cfg = yaml.safe_load(f)
+          
+          out = cfg.get('output_dir', './output').rstrip('/')
+          git_path = f'!{out}/{cfg.get(\"git_dir\", \"git_project\")}/**'
+          svn_path = f'!{out}/{cfg.get(\"svn_dir\", \"svn_project\")}/**'
+          
+          print('excludes<<EOF')
+          print('.')
+          print(git_path)
+          print(svn_path)
+          print('!**/diff_cache/**')
+          print('EOF')
+          " >> $GITHUB_OUTPUT
 
       - name: Upload intermediate data
         uses: actions/upload-artifact@v4
