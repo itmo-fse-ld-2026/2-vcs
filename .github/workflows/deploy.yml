@@ -97,7 +97,7 @@ jobs:
           path: .
 
   build_pdf:
-    needs: generate_data
+    needs: [docker_changes, generate_data]
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.docker_changes.outputs.full_image_pdf }}
