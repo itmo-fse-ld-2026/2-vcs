@@ -14,7 +14,8 @@ RUN apt-get update && \
   curl \
   tree \
   libsvn-perl \
-  graphviz && \
+  graphviz \
+  make && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 

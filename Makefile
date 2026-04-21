@@ -4,7 +4,7 @@ report_name=main
 config_name=config.yaml
 
 generate:
-	docker run --rm -it -v .:/project --user $$(id -u):$$(id -g) test python src/main.py
+	python src/main.py
 clean:
 	# clean LaTeX artifacts
 	@for file_ext in "*.pdf" "*.aux" "*.log" "*.toc" "*.out" "*.bbl" "*.blg" "*.bcf" "*.run.xml"; do \

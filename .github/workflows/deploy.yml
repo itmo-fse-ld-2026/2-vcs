@@ -7,27 +7,34 @@ on:
 jobs:
   docker_changes:
     runs-on: ubuntu-latest
+    env:
+      WATCH_LIST: "docker/ IMAGE_PDF IMAGE_DEV"
     outputs:
       docker: ${{ steps.filter.outputs.docker }}
-      full_image: ${{ steps.get_image.outputs.full_image }}
+      full_image_dev: ${{ steps.get_image.outputs.full_image_dev }}
+      full_image_pdf: ${{ steps.get_image.outputs.full_image_pdf }}
 
     steps:
       - uses: actions/checkout@v6
 
-      - uses: dorny/paths-filter@v3
+      - name: Check for changes since the last push in WATCH_LIST
         id: filter
-        with:
-          base: 'main'
-          filters: |
-            docker:
-              - 'Dockerfile'
-              - 'IMAGE_NAME'
+        run: |
+          if git diff --quiet ${{ github.event.before }} ${{ github.event.after }} -- $WATCH_LIST; then
+            echo "docker=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in: $WATCH_LIST"
+          else
+            echo "docker=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in: $WATCH_LIST"
+          fi
 
-      - name: Set full image name
+      - name: Set full image names
         id: get_image
         run: |
-          IMAGE_NAME=$(cat IMAGE_NAME)
-          echo "full_image=ghcr.io/${OWNER,,}/${IMAGE_NAME}:latest" >> $GITHUB_OUTPUT
+          IMAGE_PDF=$(cat IMAGE_PDF)
+          IMAGE_DEV=$(cat IMAGE_DEV)
+          echo "full_image_pdf=ghcr.io/${OWNER,,}/${IMAGE_PDF}:latest" >> $GITHUB_OUTPUT
+          echo "full_image_dev=ghcr.io/${OWNER,,}/${IMAGE_DEV}:latest" >> $GITHUB_OUTPUT
         env:
           OWNER: '${{ github.repository_owner }}'
 
@@ -49,30 +56,65 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker Development image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile.dev
+          push: true
+          tags: ${{ needs.docker_changes.outputs.full_image_dev }}
+
+      - name: Build and push Docker PDF image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile.report
           push: true
-          tags: ${{ needs.docker_changes.outputs.full_image }}
-
-  build_pdf:
+          tags: ${{ needs.docker_changes.outputs.full_image_pdf }}
+  
+  generate_data:
     needs: [docker_changes, build_docker]
     if: always() && (needs.build_docker.result == 'success' || needs.build_docker.result == 'skipped')
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.docker_changes.outputs.full_image }}
+      image: ${{ needs.docker_changes.outputs.full_image_dev }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v6
+      
+      - name: Generate report artifacts
+        run: |
+          make clean
+          make generate
+
+      - name: Upload intermediate data
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-report-data
+          path: .
+
+  build_pdf:
+    needs: [docker_changes, generate_data]
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.docker_changes.outputs.full_image_pdf }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+      
+      - name: Download generated data
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: generated-report-data
 
       - name: Compile PDF
         run: |
-          make clean
           make pdf
 
       - name: Prepare Pages Upload
