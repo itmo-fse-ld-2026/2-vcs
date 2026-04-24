@@ -1,0 +1,42 @@
+\subsection{Ревизия №{{ revision_num }}}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+{{ data['revision_' ~ revision_num ~ '_git'] }}
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+{{ data['revision_' ~ revision_num ~ '_svn'] }}
+\end{lstlisting}
+
+{% if has_conflicts_git or has_conflicts_svn %}
+\subsubsection{Разрешение конфликтов}
+
+{% if has_conflicts_git %}
+В процессе создания коммита в \texttt{Git} возникли следующие конфликты:
+\begin{lstlisting}
+{{ data['revision_' ~ revision_num ~ '_conflict_git'] }}
+\end{lstlisting}
+
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
+
+\begin{lstlisting}
+{{ data['revision_' ~ revision_num ~ '_resolved_git'] }}
+\end{lstlisting}
+{% endif %}
+
+{% if has_conflicts_svn %}
+В процессе создания ревизии в \texttt{Subversion} возникли следующие конфликты:
+
+\begin{lstlisting}
+{{ data['revision_' ~ revision_num ~ '_conflict_svn'] }}
+\end{lstlisting}
+
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
+
+\begin{lstlisting}
+{{ data['revision_' ~ revision_num ~ '_resolved_svn'] }}
+\end{lstlisting}
+{% endif %}
+{% endif %}

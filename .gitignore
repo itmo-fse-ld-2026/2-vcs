@@ -3,4 +3,8 @@
 *.log
 *.toc
 *.out
+
 temp/
+__pycache__/
+venv/
+output/

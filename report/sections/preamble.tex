@@ -19,3 +19,27 @@
     citecolor=blue,         % цвет ссылок на литературу
     pdfborder={0 0 0}       % убрать рамки вокруг ссылок
 }
+
+\usepackage{tikz}
+\usepackage{adjustbox}
+
+\usepackage{listings}
+% Настройки для листингов кода
+\lstset{
+    language=Bash,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    frame=single,
+    tabsize=4,
+    breaklines=true,
+    showstringspaces=false,
+    captionpos=b
+}
+
+\usepackage{float}

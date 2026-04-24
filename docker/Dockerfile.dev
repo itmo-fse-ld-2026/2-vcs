@@ -1,0 +1,25 @@
+# =============================================================================
+# Python Environment for VCS Mapping and Automation
+# Base: python:3.11-slim (Debian-based)
+# =============================================================================
+
+FROM python:3.11-slim
+
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends \
+  git \
+  subversion \
+  rsync \
+  unzip \
+  curl \
+  tree \
+  libsvn-perl \
+  graphviz \
+  make && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/*
+
+WORKDIR /project
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt

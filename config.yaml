@@ -1,0 +1,12 @@
+variant: 590700
+ask_commit_messages: false
+base_url: "https://se.ifmo.ru/courses/software-engineering-basics"
+report_dir: "./report"
+output_dir: "./output"
+git_dir: "git_project"
+svn_dir: "svn_project"
+git_log: "git.sh"
+svn_log: "svn.sh"
+git_err: "git.err"
+svn_err: "svn.err"
+vcs_plot: "./tikz/plot.tex"
