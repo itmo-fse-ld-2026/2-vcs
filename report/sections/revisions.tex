@@ -1,3 +1,651 @@
 \section{Ревизии}
 
-\dots
+В данном разделе для каждой ревизии отдельно показаны команды, которые выполняются пользователями индивидуально, чтобы воспроизвести структуру блок-схемы, выданной по варианту.
+
+\subsection{Ревизия №0}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Red fetch origin
+#rename current branch
+git -C ./output/git_project/local/Red branch -m br-0
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/0/. ./output/git_project/local/Red
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Red add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r0"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-0
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Red update ./output/svn_project/local/Red
+svn --username Red copy file:///project/output/svn_project/remote/trunk file:///project/output/svn_project/remote/branches/br-0 -m "create a new branch br-0"
+#change local branch
+svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/0/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
+svn --username Red add --force ./output/svn_project/local/Red
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Red propset dummy-prop r0 ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r0" ./output/svn_project/local/Red
+\end{lstlisting}
+
+
+\subsection{Ревизия №1}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Red fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/1/. ./output/git_project/local/Red
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Red add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r1"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-0
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Red update ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/1/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
+svn --username Red add --force ./output/svn_project/local/Red
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Red propset dummy-prop r1 ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r1" ./output/svn_project/local/Red
+\end{lstlisting}
+
+
+\subsection{Ревизия №2}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#change to the desired branch (it may be mapped to the remote one)
+git -C ./output/git_project/local/Blue switch br-0
+#create a new branch from the specified branch
+git -C ./output/git_project/local/Blue branch br-1 br-0
+#change to the desired branch
+git -C ./output/git_project/local/Blue switch br-1
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/2/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r2"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+svn --username Blue copy file:///project/output/svn_project/remote/branches/br-0 file:///project/output/svn_project/remote/branches/br-1 -m "create a new branch br-1 from br-0"
+#change local branch
+svn --username Blue switch file:///project/output/svn_project/remote/branches/br-1 ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/2/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r2 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r2" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №3}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/3/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r3"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/3/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r3 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r3" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №4}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Red fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/4/. ./output/git_project/local/Red
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Red add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r4"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-0
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Red update ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/4/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
+svn --username Red add --force ./output/svn_project/local/Red
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Red propset dummy-prop r4 ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r4" ./output/svn_project/local/Red
+\end{lstlisting}
+
+
+\subsection{Ревизия №5}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Red fetch origin
+#change to the desired branch (it may be mapped to the remote one)
+git -C ./output/git_project/local/Red switch br-0
+#create a new branch from the specified branch
+git -C ./output/git_project/local/Red branch br-2 br-0
+#change to the desired branch
+git -C ./output/git_project/local/Red switch br-2
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/5/. ./output/git_project/local/Red
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Red add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r5"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-2
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Red update ./output/svn_project/local/Red
+svn --username Red copy file:///project/output/svn_project/remote/branches/br-0 file:///project/output/svn_project/remote/branches/br-2 -m "create a new branch br-2 from br-0"
+#change local branch
+svn --username Red switch file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/5/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
+svn --username Red add --force ./output/svn_project/local/Red
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Red propset dummy-prop r5 ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r5" ./output/svn_project/local/Red
+\end{lstlisting}
+
+
+\subsection{Ревизия №6}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/6/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r6"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/6/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r6 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r6" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №7}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Red fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/7/. ./output/git_project/local/Red
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Red add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r7"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-2
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Red update ./output/svn_project/local/Red
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/7/. ./output/svn_project/local/Red
+#schedule addition of files if there are new ones
+svn --username Red add --force ./output/svn_project/local/Red
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Red propset dummy-prop r7 ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r7" ./output/svn_project/local/Red
+\end{lstlisting}
+
+
+\subsection{Ревизия №8}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#sync state of the desired branch with the remote repository
+git -C ./output/git_project/local/Blue branch -f br-2 origin/br-2
+#apply changes from branch into single commit, preserving remote branch
+git -C ./output/git_project/local/Blue merge br-2 --no-ff --no-commit
+# Auto-merging Lab4.java
+# CONFLICT (content): Merge conflict in Lab4.java
+# Automatic merge failed; fix conflicts and then commit the result.
+git -C ./output/git_project/local/Blue diff --name-only --diff-filter=U
+# Lab4.java
+#having problems with merging, trying to solve them...
+#sync changes with zip image
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/8/. ./output/git_project/local/Blue
+# sending incremental file list
+# Lab4.java
+# 
+# sent 488 bytes  received 41 bytes  1,058.00 bytes/sec
+# total size is 3,375  speedup is 6.38
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r8: merge commit"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply changes from different branch
+svn --username Blue merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-2 ./output/svn_project/local/Blue
+# --- Merging r6 through r9 into 'output/svn_project/local/Blue':
+# C    output/svn_project/local/Blue/Lab4.java
+#  C   output/svn_project/local/Blue
+# --- Recording mergeinfo for merge of r6 through r9 into 'output/svn_project/local/Blue':
+#  U   output/svn_project/local/Blue
+# Summary of conflicts:
+#   Text conflicts: 1
+#   Property conflicts: 1
+#! svn: E155015: One or more conflicts were produced while merging r5:9 into
+#! '/project/output/svn_project/local/Blue' --
+#! resolve all conflicts and rerun the merge to apply the remaining
+#! unmerged revisions
+#ensuring the current status
+svn --username Blue status ./output/svn_project/local/Blue
+#  C      output/svn_project/local/Blue
+# C       output/svn_project/local/Blue/Lab4.java
+# ?       output/svn_project/local/Blue/Lab4.java.merge-left.r5
+# ?       output/svn_project/local/Blue/Lab4.java.merge-right.r9
+# ?       output/svn_project/local/Blue/Lab4.java.working
+# ?       output/svn_project/local/Blue/dir_conflicts.prej
+# Summary of conflicts:
+#   Text conflicts: 1
+#   Property conflicts: 1
+#having problems with merging, trying to solve them...
+#update dummy metadata to fix artificial merge conflicts, if any
+svn --username Blue propset dummy-prop r8 ./output/svn_project/local/Blue
+#sync changes with zip image
+rsync -av --checksum --exclude .svn ./output/svn_project/diff_cache/8/. ./output/svn_project/local/Blue
+# sending incremental file list
+# Lab4.java
+# 
+# sent 488 bytes  received 41 bytes  1,058.00 bytes/sec
+# total size is 3,375  speedup is 6.38
+#mark conflicts as resolved
+svn --username Blue resolve --accept working -R ./output/svn_project/local/Blue
+#sync current state of files for committing (if during merge we decided to remove files)
+svn --username Blue add --force ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r8: merge commit" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsubsection{Разрешение конфликтов}
+
+
+В процессе создания коммита в \texttt{Git} возникли следующие конфликты:
+\begin{lstlisting}
+#viewing conflicts of ./output/git_project/local/Blue/Lab4.java
+Line 22: <<<<<<< HEAD
+Line 23: previous : 3
+Line 24: =======
+Line 25: previous : 5
+Line 26: >>>>>>> br-2
+\end{lstlisting}
+
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
+
+\begin{lstlisting}
+# Only in ./output/git_project/local/Blue: .git
+# diff -r -u ./output/git_project/local/Blue/Lab4.java ./output/git_project/diff_cache/8/Lab4.java
+# --- ./output/git_project/local/Blue/Lab4.java	2026-04-19 20:26:07.484012889 +0000
+# +++ ./output/git_project/diff_cache/8/Lab4.java	2026-04-19 20:29:12.000000000 +0000
+# @@ -19,8 +19,5 @@
+#    b.t26(c);
+#    }
+#  }
+# -<<<<<<< HEAD
+# -previous : 3
+# -=======
+# -previous : 5
+# ->>>>>>> br-2
+# +previous : 6
+# +previous : 7
+#
+\end{lstlisting}
+
+
+
+В процессе создания ревизии в \texttt{Subversion} возникли следующие конфликты:
+
+\begin{lstlisting}
+#viewing metadata conflicts
+Trying to change property 'dummy-prop'
+but the local property value conflicts with the incoming change.
+<<<<<<< (local property value)
+r6||||||| (incoming 'changed from' value)
+r1=======
+r4>>>>>>> (incoming 'changed to' value)
+
+#viewing conflicts of output/svn_project/local/Blue/Lab4.java
+Line 22: <<<<<<< .working
+Line 23: previous : 3
+Line 24: ||||||| .merge-left.r5
+Line 25: previous : 0
+Line 26: =======
+Line 27: previous : 1
+Line 28: >>>>>>> .merge-right.r9
+\end{lstlisting}
+
+Чтобы их разрешить, необходимо выбрать одну из предложенных версий изменений. Сверимся с предоставленным снимком репозитория и внесём следующие изменения:
+
+\begin{lstlisting}
+# Only in ./output/svn_project/local/Blue: .svn
+# diff -r -u ./output/svn_project/local/Blue/Lab4.java ./output/svn_project/diff_cache/8/Lab4.java
+# --- ./output/svn_project/local/Blue/Lab4.java	2026-04-19 20:26:15.736012959 +0000
+# +++ ./output/svn_project/diff_cache/8/Lab4.java	2026-04-19 20:29:20.000000000 +0000
+# @@ -19,10 +19,5 @@
+#    b.t26(c);
+#    }
+#  }
+# -<<<<<<< .working
+# -previous : 3
+# -||||||| .merge-left.r5
+# -previous : 0
+# -=======
+# -previous : 1
+# ->>>>>>> .merge-right.r9
+# +previous : 6
+# +previous : 7
+# Only in ./output/svn_project/local/Blue: Lab4.java.merge-left.r5
+# Only in ./output/svn_project/local/Blue: Lab4.java.merge-right.r9
+# Only in ./output/svn_project/local/Blue: Lab4.java.working
+# Only in ./output/svn_project/local/Blue: dir_conflicts.prej
+#
+\end{lstlisting}
+
+
+\subsection{Ревизия №9}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/9/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r9"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/9/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r9 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r9" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №10}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/10/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r10"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/10/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r10 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r10" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №11}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/11/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r11"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/11/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r11 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r11" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №12}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/12/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r12"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/12/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r12 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r12" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №13}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Blue fetch origin
+#apply desired changes
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/13/. ./output/git_project/local/Blue
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Blue add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Blue commit --allow-empty -m "r13"
+#send changes to the remote repository
+git -C ./output/git_project/local/Blue push -u origin br-1
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Blue update ./output/svn_project/local/Blue
+#apply desired changes
+rsync -av --delete --checksum --exclude .svn ./output/svn_project/diff_cache/13/. ./output/svn_project/local/Blue
+#schedule addition of files if there are new ones
+svn --username Blue add --force ./output/svn_project/local/Blue
+#svn has no property --allow-empty like git, so make it always have changes in metadata
+svn --username Blue propset dummy-prop r13 ./output/svn_project/local/Blue
+#save done changes on branch
+svn --username Blue commit -m "r13" ./output/svn_project/local/Blue
+\end{lstlisting}
+
+
+\subsection{Ревизия №14}
+
+Листинг Bash-скрипта для системы \texttt{Git}:
+\begin{lstlisting}
+#receive updates from repository for remote branches
+git -C ./output/git_project/local/Red fetch origin
+#change to the desired branch
+git -C ./output/git_project/local/Red switch br-0
+#sync state of the desired branch with the remote repository
+git -C ./output/git_project/local/Red branch -f br-1 origin/br-1
+#apply changes from branch into single commit, preserving remote branch
+git -C ./output/git_project/local/Red merge br-1 --no-ff --no-commit
+#sync changes with zip image
+rsync -av --delete --checksum --exclude .git ./output/git_project/diff_cache/14/. ./output/git_project/local/Red
+# sending incremental file list
+# Lab4.java
+# 
+# sent 488 bytes  received 41 bytes  1,058.00 bytes/sec
+# total size is 3,376  speedup is 6.38
+#schedule commiting all applied changes
+git -C ./output/git_project/local/Red add -A
+#save scheduled changes in the revision (even if nothing is changed)
+git -C ./output/git_project/local/Red commit --allow-empty -m "r14: merge commit"
+#send changes to the remote repository
+git -C ./output/git_project/local/Red push -u origin br-0
+\end{lstlisting}
+
+Листинг Bash-скрипта для системы \texttt{Subversion}:
+\begin{lstlisting}
+#bring changes from repository
+svn --username Red update ./output/svn_project/local/Red
+#change local branch
+svn --username Red switch file:///project/output/svn_project/remote/branches/br-0 ./output/svn_project/local/Red
+#apply changes from different branch
+svn --username Red merge --non-interactive --accept postpone file:///project/output/svn_project/remote/branches/br-1 ./output/svn_project/local/Red
+# --- Merging differences between repository URLs into 'output/svn_project/local/Red':
+# U    output/svn_project/local/Red/Lab4.java
+#  U   output/svn_project/local/Red
+# --- Recording mergeinfo for merge between repository URLs into 'output/svn_project/local/Red':
+#  U   output/svn_project/local/Red
+#ensuring the current status
+svn --username Red status ./output/svn_project/local/Red
+#  M      output/svn_project/local/Red
+# M       output/svn_project/local/Red/Lab4.java
+#sync changes with zip image
+rsync -av --checksum --exclude .svn ./output/svn_project/diff_cache/14/. ./output/svn_project/local/Red
+# sending incremental file list
+# Lab4.java
+# 
+# sent 489 bytes  received 41 bytes  1,060.00 bytes/sec
+# total size is 3,376  speedup is 6.37
+#sync current state of files for committing (if during merge we decided to remove files)
+svn --username Red add --force ./output/svn_project/local/Red
+#save done changes on branch
+svn --username Red commit -m "r14: merge commit" ./output/svn_project/local/Red
+\end{lstlisting}
+

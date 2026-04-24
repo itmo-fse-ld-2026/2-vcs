@@ -1,0 +1,99 @@
+import requests
+import re
+import os
+import subprocess
+
+class IFMOPortalClient:
+  def __init__(self, variant: int, base_url: str, cache_dir: str) -> None:
+    self._base_url = base_url
+    self._session = requests.Session()
+    self._p_auth = self._get_auth_token()
+    self._variant = variant
+    self._cache_dir = cache_dir
+
+  def _get_auth_token(self) -> str:
+    response = self._session.get(self._base_url)
+    response.raise_for_status()
+    match = re.search(r'p_auth=([^&"\']+)', response.text)
+    if not match:
+      raise ValueError("Could not find 'p_auth' token in the page source.")
+    return match.group(1)
+
+  def _build_params(self, extra_params: dict[str, str]) -> dict[str, str]:
+    params = {
+      "p_p_id": "selab2_WAR_seportlet",
+      "p_p_state": "normal",
+      "p_p_mode": "view",
+      "p_auth": self._p_auth
+    }
+    params.update(extra_params)
+    return params
+
+  def _post(self, extra_params: dict[str, str], payload: dict[str, str], stream: bool = False) -> requests.Response:
+    return self._session.post(
+      self._base_url,
+      params=self._build_params(extra_params),
+      data=payload,
+      stream=stream
+    )
+
+  def download_archive(self, commit: int, download_dir: str):
+    params = {
+      "p_p_lifecycle": "2",
+      "p_p_cacheability": "cacheLevelPage"
+    }
+    payload = {
+      "variant": str(self._variant),
+      "commit": str(commit)
+    }
+    response = self._post(params, payload, stream=True)
+    
+    if response.ok:
+      os.makedirs(download_dir, exist_ok=True)
+      filename = os.path.join(download_dir, f"{commit}.zip")
+      with open(filename, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+          f.write(chunk)
+      extract_dir = os.path.join(download_dir, str(commit))
+      os.makedirs(extract_dir, exist_ok=True)
+      # check if zip is broken
+      test_zip = subprocess.run(["unzip", "-t", filename], capture_output=True)
+      if test_zip.returncode != 0:
+        print(f"Warning: {filename} is corrupt (error {test_zip.returncode}). Leaving it empty.")
+      else:
+        result = subprocess.run(["unzip", "-qo", filename, "-d", extract_dir], check=True)
+        if result.returncode != 0:
+          raise RuntimeError(f"Unzip failed: {result.stderr}")
+      subprocess.run(["rm", "-f", filename], check=True)
+      return True, extract_dir, response.status_code
+    return False, response.text[:500], response.status_code
+
+  def get_branches(self):
+    params = {
+      "p_p_lifecycle": "1",
+      "_selab2_WAR_seportlet_javax.portlet.action": "getBranches"
+    }
+    payload = {
+      "variant": str(self._variant)
+    }
+    response = self._post(params, payload)
+    
+    if response.ok:
+      return True, response.text, response.status_code
+    return False, response.text[:500], response.status_code
+  
+  def clear_commit_area(self, base_path: str):
+    if os.path.exists(base_path):
+      subprocess.run(["rm", "-rf", base_path], check=True)
+      os.makedirs(base_path)
+
+  def get_diff(self, old_dir: str, new_dir: str) -> str:
+    result = subprocess.run(
+      ["diff", "-r", "-N", "--color=always", "--binary", old_dir, new_dir],
+      capture_output=True,
+      text=True,
+      errors="replace"
+    )
+    if result.returncode > 1:
+      raise RuntimeError(f"Diff command failed: {result.stderr}")
+    return result.stdout
